@@ -1,0 +1,46 @@
+﻿services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: orbit-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: orbit
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - orbit-network
+
+  api:
+    image: orbit-api
+    container_name: orbit-api
+    build:
+      context: .
+      dockerfile: Api/Dockerfile
+    ports:
+      - "3000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=orbit;Username=postgres;Password=postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - orbit-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  orbit-network:
+    driver: bridge
