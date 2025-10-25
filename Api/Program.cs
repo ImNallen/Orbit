@@ -9,8 +9,24 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+// Configure Serilog
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .Enrich.WithMachineName()
+    .Enrich.WithThreadId()
+    .CreateLogger();
+
+builder.Host.UseSerilog();
+
+try
+{
+    Log.Information("Starting Orbit API");
+
 
 // Add services to the container
 builder.Services.AddHttpContextAccessor(); // Required for accessing HTTP context in services
@@ -120,4 +136,13 @@ app.UseAuthorization();
 // Map GraphQL endpoint
 app.MapGraphQL();
 
-await app.RunAsync().ConfigureAwait(false);
+    await app.RunAsync().ConfigureAwait(false);
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    await Log.CloseAndFlushAsync();
+}

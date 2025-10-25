@@ -18,6 +18,20 @@
     networks:
       - orbit-network
 
+  seq:
+    image: datalust/seq:latest
+    container_name: orbit-seq
+    environment:
+      - ACCEPT_EULA=Y
+      - SEQ_FIRSTRUN_ADMINPASSWORD=admin
+    ports:
+      - "5341:80"
+    volumes:
+      - seq_data:/data
+    networks:
+      - orbit-network
+    restart: unless-stopped
+
   api:
     image: orbit-api
     container_name: orbit-api
@@ -30,6 +44,7 @@
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=orbit;Username=postgres;Password=postgres
+      - Seq__ServerUrl=http://seq:80
     depends_on:
       postgres:
         condition: service_healthy
@@ -39,6 +54,8 @@
 
 volumes:
   postgres_data:
+    driver: local
+  seq_data:
     driver: local
 
 networks:
