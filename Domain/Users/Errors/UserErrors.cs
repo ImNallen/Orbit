@@ -28,6 +28,18 @@ public static class UserErrors
         "User.AccountDeleted",
         "Account has been deleted.");
 
+    public static readonly DomainError UserAlreadySuspended = new UserError(
+        "User.AlreadySuspended",
+        "User account is already suspended.");
+
+    public static readonly DomainError UserAlreadyActive = new UserError(
+        "User.AlreadyActive",
+        "User account is already active.");
+
+    public static readonly DomainError AccountNotLocked = new UserError(
+        "User.AccountNotLocked",
+        "User account is not locked.");
+
     // Registration Errors
     public static readonly DomainError EmailAlreadyExists = new UserError(
         "User.EmailAlreadyExists",

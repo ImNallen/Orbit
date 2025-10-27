@@ -11,6 +11,11 @@ using Application.Users.Commands.ResetPassword;
 using Application.Users.Commands.RevokeAllSessions;
 using Application.Users.Commands.RevokeSession;
 using Application.Users.Commands.VerifyEmail;
+using Application.Users.Commands.SuspendUser;
+using Application.Users.Commands.ActivateUser;
+using Application.Users.Commands.DeleteUser;
+using Application.Users.Commands.UnlockUserAccount;
+using Application.Users.Commands.UpdateUserProfile;
 using Domain.Abstractions;
 using HotChocolate.Authorization;
 using MediatR;
@@ -289,6 +294,126 @@ public sealed class UserMutations
         }
 
         return AssignRolePayload.Success(result.Value.Message);
+    }
+
+    /// <summary>
+    /// Suspends a user account.
+    /// Requires users:suspend permission.
+    /// </summary>
+    [Authorize(Policy = "users:suspend")]
+    public async Task<SuspendUserPayload> SuspendUserAsync(
+        SuspendUserInput input,
+        [Service] IMediator mediator,
+        CancellationToken cancellationToken)
+    {
+        var command = new SuspendUserCommand(input.UserId);
+        Result<SuspendUserResult, DomainError> result = await mediator.Send(command, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return SuspendUserPayload.Failure(
+                new UserError(result.Error.Code, result.Error.Message));
+        }
+
+        return SuspendUserPayload.Success(result.Value.Message);
+    }
+
+    /// <summary>
+    /// Activates a suspended user account.
+    /// Requires users:activate permission.
+    /// </summary>
+    [Authorize(Policy = "users:activate")]
+    public async Task<ActivateUserPayload> ActivateUserAsync(
+        ActivateUserInput input,
+        [Service] IMediator mediator,
+        CancellationToken cancellationToken)
+    {
+        var command = new ActivateUserCommand(input.UserId);
+        Result<ActivateUserResult, DomainError> result = await mediator.Send(command, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return ActivateUserPayload.Failure(
+                new UserError(result.Error.Code, result.Error.Message));
+        }
+
+        return ActivateUserPayload.Success(result.Value.Message);
+    }
+
+    /// <summary>
+    /// Deletes a user account (soft delete).
+    /// Requires users:delete permission.
+    /// </summary>
+    [Authorize(Policy = "users:delete")]
+    public async Task<DeleteUserPayload> DeleteUserAsync(
+        DeleteUserInput input,
+        [Service] IMediator mediator,
+        CancellationToken cancellationToken)
+    {
+        var command = new DeleteUserCommand(input.UserId);
+        Result<DeleteUserResult, DomainError> result = await mediator.Send(command, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return DeleteUserPayload.Failure(
+                new UserError(result.Error.Code, result.Error.Message));
+        }
+
+        return DeleteUserPayload.Success(result.Value.Message);
+    }
+
+    /// <summary>
+    /// Unlocks a locked user account.
+    /// Requires users:unlock permission.
+    /// </summary>
+    [Authorize(Policy = "users:unlock")]
+    public async Task<UnlockUserAccountPayload> UnlockUserAccountAsync(
+        UnlockUserAccountInput input,
+        [Service] IMediator mediator,
+        CancellationToken cancellationToken)
+    {
+        var command = new UnlockUserAccountCommand(input.UserId);
+        Result<UnlockUserAccountResult, DomainError> result = await mediator.Send(command, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return UnlockUserAccountPayload.Failure(
+                new UserError(result.Error.Code, result.Error.Message));
+        }
+
+        return UnlockUserAccountPayload.Success(result.Value.Message);
+    }
+
+    /// <summary>
+    /// Updates a user's profile information.
+    /// Requires users:update permission.
+    /// </summary>
+    [Authorize(Policy = "users:update")]
+    public async Task<UpdateUserProfilePayload> UpdateUserProfileAsync(
+        UpdateUserProfileInput input,
+        [Service] IMediator mediator,
+        CancellationToken cancellationToken)
+    {
+        var command = new UpdateUserProfileCommand(
+            input.UserId,
+            input.FirstName,
+            input.LastName);
+
+        Result<UpdateUserProfileResult, DomainError> result = await mediator.Send(command, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return UpdateUserProfilePayload.Failure(
+                new UserError(result.Error.Code, result.Error.Message));
+        }
+
+        UpdateUserProfileResult profileResult = result.Value;
+
+        return UpdateUserProfilePayload.Success(
+            profileResult.UserId,
+            profileResult.FirstName,
+            profileResult.LastName,
+            profileResult.Message);
     }
 }
 

@@ -353,5 +353,18 @@ public sealed class User : Entity
         Status = UserStatus.Deleted;
         UpdatedAt = DateTime.UtcNow;
     }
+
+    /// <summary>
+    /// Updates the user's profile information.
+    /// </summary>
+    public void UpdateProfile(FullName newFullName)
+    {
+        ArgumentNullException.ThrowIfNull(newFullName);
+
+        FullName = newFullName;
+        UpdatedAt = DateTime.UtcNow;
+
+        Raise(new UserProfileUpdatedEvent(Id, newFullName.FirstName, newFullName.LastName));
+    }
 }
 
