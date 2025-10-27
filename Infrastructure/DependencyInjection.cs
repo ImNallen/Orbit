@@ -1,3 +1,5 @@
+using System.Net;
+using System.Net.Mail;
 using Application.Abstractions.Email;
 using Domain.Abstractions;
 using Domain.Users.Permission;
@@ -7,6 +9,7 @@ using Domain.Users.User;
 using Infrastructure.Authentication;
 using Infrastructure.Authorization;
 using Infrastructure.Database;
+using Infrastructure.EmailConfiguration;
 using Infrastructure.EmailServices;
 using Infrastructure.Http;
 using Infrastructure.Repositories;
@@ -32,6 +35,7 @@ public static class DependencyInjection
     {
         // Configuration
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
+        services.Configure<EmailOptions>(configuration.GetSection(EmailOptions.SectionName));
 
         // Database
         var dataSourceBuilder = new NpgsqlDataSourceBuilder(configuration.GetConnectionString("DefaultConnection"));
@@ -55,10 +59,45 @@ public static class DependencyInjection
         services.AddSingleton<IJwtTokenService, JwtTokenService>();
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
         services.AddSingleton<ITokenExpirationSettings, TokenExpirationSettings>();
-        services.AddScoped<IEmailService, ConsoleEmailService>();
         services.AddScoped<IAuthorizationService, AuthorizationService>();
         services.AddScoped<Domain.Abstractions.IHttpContextAccessor, HttpContextAccessor>();
 
+        // Email Services
+        AddEmailServices(services, configuration);
+
         return services;
+    }
+
+    /// <summary>
+    /// Registers email services with FluentEmail.
+    /// </summary>
+    private static void AddEmailServices(IServiceCollection services, IConfiguration configuration)
+    {
+        EmailOptions emailOptions = configuration.GetSection(EmailOptions.SectionName).Get<EmailOptions>() ?? new EmailOptions();
+
+        // Configure FluentEmail
+        services
+            .AddFluentEmail(emailOptions.FromEmail, emailOptions.FromName)
+            .AddSmtpSender(() =>
+            {
+                var smtpClient = new SmtpClient(emailOptions.Smtp.Host, emailOptions.Smtp.Port)
+                {
+                    EnableSsl = emailOptions.Smtp.EnableSsl,
+                    DeliveryMethod = SmtpDeliveryMethod.Network,
+                    UseDefaultCredentials = string.IsNullOrEmpty(emailOptions.Smtp.Username)
+                };
+
+                if (!string.IsNullOrEmpty(emailOptions.Smtp.Username))
+                {
+                    smtpClient.Credentials = new NetworkCredential(
+                        emailOptions.Smtp.Username,
+                        emailOptions.Smtp.Password);
+                }
+
+                return smtpClient;
+            });
+
+        // Register our email service implementation
+        services.AddScoped<IEmailService, FluentEmailService>();
     }
 }

@@ -52,6 +52,16 @@
       - orbit-network
     restart: unless-stopped
 
+  papercut:
+    image: changemakerstudiosus/papercut-smtp:latest
+    container_name: papercut
+    ports:
+      - 8080:80
+      - 25:25
+    networks:
+      - orbit-network
+    restart: unless-stopped
+
 networks:
   orbit-network:
     driver: bridge
