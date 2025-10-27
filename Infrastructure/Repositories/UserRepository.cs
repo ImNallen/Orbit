@@ -64,7 +64,7 @@ public class UserRepository : IUserRepository
     public async Task<List<User>> GetByRoleIdAsync(Guid roleId, CancellationToken cancellationToken = default)
     {
         return await _context.Users
-            .Where(u => u.RoleIds.Contains(roleId))
+            .Where(u => u.RoleId == roleId)
             .ToListAsync(cancellationToken);
     }
 

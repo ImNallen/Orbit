@@ -3,7 +3,6 @@ using Api.GraphQL.Inputs;
 using Api.GraphQL.Payloads;
 using Api.GraphQL.Types;
 using Application.Roles.Commands.AssignRole;
-using Application.Roles.Commands.RemoveRole;
 using Application.Users.Commands.Login;
 using Application.Users.Commands.RefreshToken;
 using Application.Users.Commands.RegisterUser;
@@ -25,7 +24,9 @@ public sealed class UserMutations
 {
     /// <summary>
     /// Registers a new user.
+    /// Requires users:create permission.
     /// </summary>
+    [Authorize(Policy = "users:create")]
     public async Task<RegisterUserPayload> RegisterUserAsync(
         RegisterUserInput input,
         [Service] IMediator mediator,
@@ -35,7 +36,8 @@ public sealed class UserMutations
             input.Email,
             input.Password,
             input.FirstName,
-            input.LastName);
+            input.LastName,
+            input.RoleId);
 
         Result<RegisterUserResult, DomainError> result = await mediator.Send(command, cancellationToken);
 
@@ -268,11 +270,11 @@ public sealed class UserMutations
     }
 
     /// <summary>
-    /// Assigns a role to a user.
+    /// Changes a user's role.
     /// Requires roles:assign permission.
     /// </summary>
     [Authorize(Policy = "roles:assign")]
-    public async Task<AssignRolePayload> AssignRoleAsync(
+    public async Task<AssignRolePayload> ChangeUserRoleAsync(
         AssignRoleInput input,
         [Service] IMediator mediator,
         CancellationToken cancellationToken)
@@ -287,28 +289,6 @@ public sealed class UserMutations
         }
 
         return AssignRolePayload.Success(result.Value.Message);
-    }
-
-    /// <summary>
-    /// Removes a role from a user.
-    /// Requires roles:remove permission.
-    /// </summary>
-    [Authorize(Policy = "roles:remove")]
-    public async Task<RemoveRolePayload> RemoveRoleAsync(
-        RemoveRoleInput input,
-        [Service] IMediator mediator,
-        CancellationToken cancellationToken)
-    {
-        var command = new RemoveRoleCommand(input.UserId, input.RoleId);
-        Result<RemoveRoleResult, DomainError> result = await mediator.Send(command, cancellationToken);
-
-        if (result.IsFailure)
-        {
-            return RemoveRolePayload.Failure(
-                new UserError(result.Error.Code, result.Error.Message));
-        }
-
-        return RemoveRolePayload.Success(result.Value.Message);
     }
 }
 

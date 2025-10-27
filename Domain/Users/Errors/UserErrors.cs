@@ -122,14 +122,6 @@ public static class UserErrors
         "User.PermissionNotFound",
         "Permission not found.");
 
-    public static readonly DomainError RoleAlreadyAssigned = new UserError(
-        "User.RoleAlreadyAssigned",
-        "Role is already assigned to this user.");
-
-    public static readonly DomainError RoleNotAssigned = new UserError(
-        "User.RoleNotAssigned",
-        "Role is not assigned to this user.");
-
     public static readonly DomainError InsufficientPermissions = new UserError(
         "User.InsufficientPermissions",
         "User does not have the required permissions.");

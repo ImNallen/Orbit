@@ -48,22 +48,16 @@ public sealed class AssignRoleCommandHandler : IRequestHandler<AssignRoleCommand
             return Result<AssignRoleResult, DomainError>.Failure(UserErrors.RoleNotFound);
         }
 
-        // 3. Assign the role to the user
-        Result<DomainError> assignResult = user.AssignRole(role.Id, role.Name);
-        if (assignResult.IsFailure)
-        {
-            _logger.LogWarning("Failed to assign role {RoleId} to user {UserId}: {Error}",
-                command.RoleId, command.UserId, assignResult.Error.Message);
-            return Result<AssignRoleResult, DomainError>.Failure(assignResult.Error);
-        }
+        // 3. Change the user's role
+        user.ChangeRole(role.Id, role.Name);
 
         // 4. Save the user
         await _userRepository.UpdateAsync(user, cancellationToken);
 
-        _logger.LogInformation("Successfully assigned role {RoleName} to user {UserId}", role.Name, command.UserId);
+        _logger.LogInformation("Successfully changed role to {RoleName} for user {UserId}", role.Name, command.UserId);
 
         return Result<AssignRoleResult, DomainError>.Success(
-            new AssignRoleResult($"Role '{role.Name}' assigned successfully"));
+            new AssignRoleResult($"Role changed to '{role.Name}' successfully"));
     }
 }
 

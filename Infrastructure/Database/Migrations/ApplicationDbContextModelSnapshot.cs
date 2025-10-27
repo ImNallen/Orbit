@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace Infrastructure.Migrations
+namespace Infrastructure.Database.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     partial class ApplicationDbContextModelSnapshot : ModelSnapshot
@@ -236,10 +236,9 @@ namespace Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("password_reset_token_expires_at");
 
-                    b.Property<IReadOnlyCollection<Guid>>("RoleIds")
-                        .IsRequired()
-                        .HasColumnType("jsonb")
-                        .HasColumnName("role_ids");
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("role_id");
 
                     b.Property<string>("Status")
                         .IsRequired()

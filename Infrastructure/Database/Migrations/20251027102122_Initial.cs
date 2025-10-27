@@ -4,12 +4,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-#pragma warning disable CA1861 // Avoid constant arrays as arguments - generated code
-
-namespace Infrastructure.Migrations
+namespace Infrastructure.Database.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -97,7 +95,7 @@ namespace Infrastructure.Migrations
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     last_login_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    role_ids = table.Column<IReadOnlyCollection<Guid>>(type: "jsonb", nullable: false)
+                    role_id = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {

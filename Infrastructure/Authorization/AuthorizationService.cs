@@ -26,60 +26,53 @@ public class AuthorizationService : IAuthorizationService
 
     public async Task<List<string>> GetUserRolesAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        // 1. Get user to access their role IDs
+        // 1. Get user to access their role ID
         User? user = await _userRepository.GetByIdAsync(userId, cancellationToken);
         if (user is null)
         {
             return [];
         }
 
-        // 2. If user has no roles, return empty list
-        if (!user.RoleIds.Any())
+        // 2. Load role from database
+        Role? role = await _roleRepository.GetByIdAsync(user.RoleId, cancellationToken);
+        if (role is null)
         {
             return [];
         }
 
-        // 3. Load roles from database
-        List<Role> roles = await _roleRepository.GetByIdsAsync(user.RoleIds, cancellationToken);
-
-        // 4. Extract role names
-        return roles.Select(r => r.Name).ToList();
+        // 3. Return role name
+        return [role.Name];
     }
 
     public async Task<List<string>> GetUserPermissionsAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        // 1. Get user to access their role IDs
+        // 1. Get user to access their role ID
         User? user = await _userRepository.GetByIdAsync(userId, cancellationToken);
         if (user is null)
         {
             return [];
         }
 
-        // 2. If user has no roles, return empty list
-        if (!user.RoleIds.Any())
+        // 2. Load role from database
+        Role? role = await _roleRepository.GetByIdAsync(user.RoleId, cancellationToken);
+        if (role is null)
         {
             return [];
         }
 
-        // 3. Load roles from database
-        List<Role> roles = await _roleRepository.GetByIdsAsync(user.RoleIds, cancellationToken);
+        // 3. Get permission IDs from the role
+        var permissionIds = role.PermissionIds.ToList();
 
-        // 4. Aggregate all permission IDs from all roles (distinct)
-        var permissionIds = roles
-            .SelectMany(r => r.PermissionIds)
-            .Distinct()
-            .ToList();
-
-        // 5. If no permissions, return empty list
+        // 4. If no permissions, return empty list
         if (!permissionIds.Any())
         {
             return [];
         }
 
-        // 6. Load permissions from database
+        // 5. Load permissions from database
         List<Permission> permissions = await _permissionRepository.GetByIdsAsync(permissionIds, cancellationToken);
 
-        // 7. Extract permission names
+        // 6. Extract permission names
         return permissions.Select(p => p.Name).ToList();
     }
 }

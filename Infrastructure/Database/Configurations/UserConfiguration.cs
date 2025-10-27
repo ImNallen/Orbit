@@ -105,10 +105,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.LastLoginAt)
             .HasColumnName("last_login_at");
 
-        // Role IDs - stored as JSON array
-        builder.Property(u => u.RoleIds)
-            .HasColumnName("role_ids")
-            .HasColumnType("jsonb") // PostgreSQL JSON type
+        // Role ID - required foreign key
+        builder.Property(u => u.RoleId)
+            .HasColumnName("role_id")
             .IsRequired();
 
         // Ignore domain events (not persisted)

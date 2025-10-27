@@ -1,5 +1,7 @@
+using Domain.Abstractions;
 using Domain.Users.Permission;
 using Domain.Users.Role;
+using Domain.Users.User;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -12,11 +14,16 @@ public class DatabaseSeeder
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<DatabaseSeeder> _logger;
+    private readonly IPasswordHasher _passwordHasher;
 
-    public DatabaseSeeder(ApplicationDbContext context, ILogger<DatabaseSeeder> logger)
+    public DatabaseSeeder(
+        ApplicationDbContext context,
+        ILogger<DatabaseSeeder> logger,
+        IPasswordHasher passwordHasher)
     {
         _context = context;
         _logger = logger;
+        _passwordHasher = passwordHasher;
     }
 
     /// <summary>
@@ -28,6 +35,7 @@ public class DatabaseSeeder
 
         await SeedPermissionsAsync();
         await SeedRolesAsync();
+        await SeedDefaultAdminUserAsync();
 
         _logger.LogInformation("Database seeding completed successfully.");
     }
@@ -116,6 +124,86 @@ public class DatabaseSeeder
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Seeded 2 roles (Admin, User).");
+    }
+
+    /// <summary>
+    /// Seeds a default admin user for initial system access.
+    /// </summary>
+    private async Task SeedDefaultAdminUserAsync()
+    {
+        // Check if any users already exist
+        if (await _context.Users.AnyAsync())
+        {
+            _logger.LogInformation("Users already exist. Skipping default admin user seeding.");
+            return;
+        }
+
+        _logger.LogInformation("Seeding default admin user...");
+
+        // Get the Admin role
+        Role? adminRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
+        if (adminRole is null)
+        {
+            _logger.LogError("Admin role not found. Cannot seed default admin user.");
+            return;
+        }
+
+        // Create email
+        Result<Email, DomainError> emailResult = Email.Create("admin@example.com");
+        if (emailResult.IsFailure)
+        {
+            _logger.LogError("Failed to create admin email: {Error}", emailResult.Error.Message);
+            return;
+        }
+
+        // Create password hash
+        Result<Password, DomainError> passwordResult = Password.Create("Admin123!");
+        if (passwordResult.IsFailure)
+        {
+            _logger.LogError("Failed to create admin password: {Error}", passwordResult.Error.Message);
+            return;
+        }
+
+        PasswordHash passwordHash = _passwordHasher.Hash(passwordResult.Value);
+
+        // Create full name
+        Result<FullName, DomainError> fullNameResult = FullName.Create("System", "Administrator");
+        if (fullNameResult.IsFailure)
+        {
+            _logger.LogError("Failed to create admin full name: {Error}", fullNameResult.Error.Message);
+            return;
+        }
+
+        // Create admin user
+        Result<User, DomainError> userResult = User.Create(
+            emailResult.Value,
+            passwordHash,
+            fullNameResult.Value,
+            adminRole.Id);
+
+        if (userResult.IsFailure)
+        {
+            _logger.LogError("Failed to create admin user: {Error}", userResult.Error.Message);
+            return;
+        }
+
+        User adminUser = userResult.Value;
+
+        // Mark email as verified so admin can login immediately
+        const string verificationToken = "SEEDED_ADMIN_TOKEN";
+        adminUser.SetEmailVerificationToken(verificationToken, TimeSpan.FromHours(24));
+        Result<DomainError> verifyResult = adminUser.VerifyEmail(verificationToken);
+
+        if (verifyResult.IsFailure)
+        {
+            _logger.LogError("Failed to verify admin email: {Error}", verifyResult.Error.Message);
+            return;
+        }
+
+        await _context.Users.AddAsync(adminUser);
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Seeded default admin user (admin@example.com / Admin123!).");
     }
 }
 

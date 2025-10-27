@@ -3,6 +3,7 @@ using Api.Authorization;
 using Api.GraphQL.Mutations;
 using Api.GraphQL.Queries;
 using Application;
+using Domain.Abstractions;
 using Infrastructure;
 using Infrastructure.Database;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -121,7 +122,8 @@ if (app.Environment.IsDevelopment())
 
     // Seed initial data
     ILogger<DatabaseSeeder> logger = scope.ServiceProvider.GetRequiredService<ILogger<DatabaseSeeder>>();
-    var seeder = new DatabaseSeeder(dbContext, logger);
+    IPasswordHasher passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
+    var seeder = new DatabaseSeeder(dbContext, logger, passwordHasher);
     await seeder.SeedAsync();
 
     app.MapOpenApi();

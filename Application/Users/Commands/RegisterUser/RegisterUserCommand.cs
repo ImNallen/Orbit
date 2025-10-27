@@ -10,7 +10,8 @@ public sealed record RegisterUserCommand(
     string Email,
     string Password,
     string FirstName,
-    string LastName) : IRequest<Result<RegisterUserResult, DomainError>>;
+    string LastName,
+    Guid? RoleId = null) : IRequest<Result<RegisterUserResult, DomainError>>;
 
 /// <summary>
 /// Result of user registration.

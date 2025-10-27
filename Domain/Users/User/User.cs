@@ -13,19 +13,20 @@ public sealed class User : Entity
     private static readonly TimeSpan AccountLockoutDuration = TimeSpan.FromMinutes(15);
     private const int PasswordHistoryLimit = 5;
 
-    private readonly List<Guid> _roleIds = [];
     private readonly List<PasswordHash> _passwordHistory = [];
 
     private User(
         Guid id,
         Email email,
         PasswordHash passwordHash,
-        FullName fullName)
+        FullName fullName,
+        Guid roleId)
         : base(id)
     {
         Email = email;
         PasswordHash = passwordHash;
         FullName = fullName;
+        RoleId = roleId;
         Status = UserStatus.Active;
         IsEmailVerified = false;
         FailedLoginAttempts = 0;
@@ -59,7 +60,7 @@ public sealed class User : Entity
     public DateTime? LastLoginAt { get; private set; }
 
     // Relationships
-    public IReadOnlyCollection<Guid> RoleIds => _roleIds.AsReadOnly();
+    public Guid RoleId { get; private set; }
     public IReadOnlyCollection<PasswordHash> PasswordHistory => _passwordHistory.AsReadOnly();
 
     /// <summary>
@@ -68,13 +69,15 @@ public sealed class User : Entity
     public static Result<User, DomainError> Create(
         Email email,
         PasswordHash passwordHash,
-        FullName fullName)
+        FullName fullName,
+        Guid roleId)
     {
         var user = new User(
             Guid.NewGuid(),
             email,
             passwordHash,
-            fullName);
+            fullName,
+            roleId);
 
         // Add initial password to history
         user._passwordHistory.Add(passwordHash);
@@ -305,39 +308,15 @@ public sealed class User : Entity
     }
 
     /// <summary>
-    /// Assigns a role to the user.
+    /// Changes the user's role.
     /// </summary>
-    public Result<DomainError> AssignRole(Guid roleId, string roleName)
+    public void ChangeRole(Guid newRoleId, string newRoleName)
     {
-        if (_roleIds.Contains(roleId))
-        {
-            return Result<DomainError>.Failure(UserErrors.RoleAlreadyAssigned);
-        }
-
-        _roleIds.Add(roleId);
+        Guid oldRoleId = RoleId;
+        RoleId = newRoleId;
         UpdatedAt = DateTime.UtcNow;
 
-        Raise(new RoleAssignedToUserEvent(Id, roleId, roleName));
-
-        return Result<DomainError>.Success();
-    }
-
-    /// <summary>
-    /// Revokes a role from the user.
-    /// </summary>
-    public Result<DomainError> RevokeRole(Guid roleId, string roleName)
-    {
-        if (!_roleIds.Contains(roleId))
-        {
-            return Result<DomainError>.Failure(UserErrors.RoleNotAssigned);
-        }
-
-        _roleIds.Remove(roleId);
-        UpdatedAt = DateTime.UtcNow;
-
-        Raise(new RoleRevokedFromUserEvent(Id, roleId, roleName));
-
-        return Result<DomainError>.Success();
+        Raise(new RoleChangedEvent(Id, oldRoleId, newRoleId, newRoleName));
     }
 
     /// <summary>
@@ -345,7 +324,7 @@ public sealed class User : Entity
     /// </summary>
     public bool HasRole(Guid roleId)
     {
-        return _roleIds.Contains(roleId);
+        return RoleId == roleId;
     }
 
     /// <summary>
