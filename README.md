@@ -136,15 +136,19 @@ Orbit/
 - ✅ **Permission-Based Authorization** - Fine-grained access control with 13 permissions
 
 ### 👥 User Management
-- ✅ **User Queries** - Get current user, user by ID, all users
+- ✅ **User Queries** - Get current user, user by ID, all users (with pagination)
 - ✅ **User Sessions** - View and manage active sessions
 - ✅ **Session Revocation** - Revoke individual or all sessions
+- ✅ **User Suspension** - Suspend user accounts (admin only)
+- ✅ **User Activation** - Activate suspended user accounts (admin only)
+- ✅ **User Deletion** - Soft delete user accounts (admin only)
+- ✅ **Account Unlock** - Manually unlock locked user accounts (admin only)
 
 ### 🎭 Role & Permission Management
 - ✅ **Role Queries** - View all roles and their permissions
 - ✅ **Permission Queries** - View all available permissions
-- ✅ **Role Assignment** - Assign roles to users (admin only)
-- ✅ **Role Removal** - Remove roles from users (admin only)
+- ✅ **Role Assignment** - Assign roles to users (requires `roles:assign`)
+- ✅ **Role Removal** - Remove roles from users (requires `roles:remove`)
 
 ### 🏗️ Domain Model
 - ✅ **User Aggregate** - Rich domain model with email, password, profile, roles, and sessions
@@ -167,58 +171,83 @@ Orbit/
 - ✅ **PostgreSQL Database** - Production-ready relational database
 - ✅ **Entity Framework Core** - Code-first migrations and configurations
 - ✅ **Repository Pattern** - Clean separation of data access
-- ✅ **Database Seeding** - Initial roles and permissions
+- ✅ **Database Seeding** - Initial roles, permissions, and admin user
 - ✅ **Docker Support** - Multi-stage Dockerfile and Docker Compose
 - ✅ **Clean Architecture** - Well-organized layer structure
+- ✅ **Structured Logging** - Serilog with Seq integration
+- ✅ **Health Checks** - Comprehensive health monitoring with database connectivity
 
 ## 📊 GraphQL API
 
 ### Queries
-- ✅ `health` - Health check endpoint
-- ✅ `me` - Get current authenticated user
+- ✅ `health` - Comprehensive health check with database connectivity, environment, version, and uptime
+- ✅ `me` - Get current authenticated user with roles and permissions
 - ✅ `user(id: ID!)` - Get user by ID (requires `users:read`)
-- ✅ `users` - Get all users (requires `users:read`)
-- ✅ `sessions` - Get current user's sessions (requires authentication)
-- ✅ `roles` - Get all roles (requires `roles:read`)
-- ✅ `permissions` - Get all permissions (requires `permissions:read`)
+- ✅ `users(page: Int, pageSize: Int)` - Get all users with pagination (requires `users:read`)
+- ✅ `sessions` - Get current user's active sessions (requires authentication)
+- ✅ `roles` - Get all roles with permissions (requires `roles:read`)
+- ✅ `permissions` - Get all available permissions (requires `permissions:read`)
 
 ### Mutations
-- ✅ `registerUser` - User registration
-- ✅ `login` - User login with credentials
-- ✅ `refreshToken` - Refresh access token
-- ✅ `verifyEmail` - Verify email with token
-- ✅ `requestPasswordReset` - Request password reset
+
+#### Authentication & Registration
+- ✅ `registerUser` - Register new user (requires `users:create`)
+- ✅ `login` - User login with credentials (returns JWT tokens)
+- ✅ `refreshToken` - Refresh access token using refresh token
+- ✅ `verifyEmail` - Verify email address with token
+- ✅ `requestPasswordReset` - Request password reset email
 - ✅ `resetPassword` - Reset password with token
+
+#### Session Management
 - ✅ `revokeSession` - Revoke specific session (requires authentication)
-- ✅ `revokeAllSessions` - Revoke all sessions (requires authentication)
+- ✅ `revokeAllSessions` - Revoke all user sessions (requires authentication)
+
+#### User Management (Admin)
+- ✅ `suspendUser` - Suspend user account (requires `users:suspend`)
+- ✅ `activateUser` - Activate suspended account (requires `users:activate`)
+- ✅ `deleteUser` - Soft delete user account (requires `users:delete`)
+- ✅ `unlockUserAccount` - Unlock locked account (requires `users:unlock`)
+
+#### Role Management (Admin)
 - ✅ `assignRole` - Assign role to user (requires `roles:assign`)
 - ✅ `removeRole` - Remove role from user (requires `roles:remove`)
 
 ### Permissions
-The system includes 13 granular permissions:
-- **Users**: `users:create`, `users:read`, `users:update`, `users:delete`
-- **Roles**: `roles:create`, `roles:read`, `roles:update`, `roles:delete`, `roles:assign`, `roles:remove`
-- **Permissions**: `permissions:read`
-- **Sessions**: `sessions:read`, `sessions:revoke`
+The system includes 17 granular permissions organized by resource:
+
+- **Users** (7): `users:create`, `users:read`, `users:update`, `users:delete`, `users:suspend`, `users:activate`, `users:unlock`
+- **Roles** (6): `roles:create`, `roles:read`, `roles:update`, `roles:delete`, `roles:assign`, `roles:remove`
+- **Permissions** (1): `permissions:read`
+- **Sessions** (3): `sessions:read`, `sessions:revoke`, `sessions:delete`
 
 ### Default Roles
-- **Admin** - Full system access with all permissions
-- **User** - Read-only access to basic resources
+- **Admin** - Full system access with all 17 permissions
+- **User** - Read-only access to basic resources (users:read, roles:read, permissions:read, sessions:read)
+
+### Default Admin Account
+The system automatically seeds a default admin account in development:
+- **Email**: `admin@orbit.local`
+- **Password**: `Admin123!`
+- **Role**: Admin (all permissions)
+- **Status**: Active, Email Verified
+
+⚠️ **Important**: Change this password immediately in production environments!
 
 ## 📋 Roadmap
 
 ### Planned Features
 - [ ] Change password for authenticated users
-- [ ] Update user profile (name, etc.)
+- [ ] Update user profile (name, email)
 - [ ] Resend email verification
 - [ ] Create/update/delete roles (admin only)
-- [ ] Add/remove permissions to/from roles (admin only)
-- [ ] User account suspension/activation
-- [ ] Soft delete user accounts
+- [ ] Add/remove individual permissions to/from roles (admin only)
 - [ ] Two-factor authentication (2FA)
-- [ ] OAuth2/OIDC integration
-- [ ] Rate limiting
+- [ ] OAuth2/OIDC integration (Google, GitHub, etc.)
+- [ ] Rate limiting and throttling
 - [ ] API versioning
+- [ ] Audit logging for sensitive operations
+- [ ] User activity tracking
+- [ ] Email templates and customization
 
 ### Testing & Quality
 - [ ] Unit tests for domain entities and value objects
@@ -264,13 +293,17 @@ The system includes 13 granular permissions:
 ## 🗄️ Database Schema
 
 The application uses PostgreSQL with the following main tables:
-- **users** - User accounts with email, password hash, roles, and status
-- **roles** - Role definitions with permission collections
-- **permissions** - Permission definitions (resource:action pattern)
-- **sessions** - Active user sessions with refresh tokens
-- **password_history** - Historical password hashes for reuse prevention
+- **users** - User accounts with email, password hash, role, status, and lockout tracking
+- **roles** - Role definitions with permission collections (many-to-many with permissions)
+- **permissions** - Permission definitions using resource:action pattern
+- **sessions** - Active user sessions with refresh tokens, IP address, and user agent
+- **password_history** - Historical password hashes for reuse prevention (last 5 passwords)
 
-All tables use UUIDs as primary keys and include proper indexes for performance.
+All tables use UUIDs as primary keys and include proper indexes for performance. The schema supports:
+- One-to-many relationship between users and sessions
+- Many-to-many relationship between roles and permissions
+- One-to-many relationship between users and password history
+- Soft deletes for users (status-based)
 
 ## ⚙️ Configuration
 
@@ -282,22 +315,27 @@ The application can be configured using the following environment variables:
 - `ConnectionStrings__DefaultConnection` - PostgreSQL connection string
 
 **JWT:**
-- `Jwt__Secret` - Secret key for JWT signing (min 32 characters)
+- `Jwt__Secret` - Secret key for JWT signing (min 32 characters, required)
 - `Jwt__Issuer` - JWT issuer (default: "Orbit")
 - `Jwt__Audience` - JWT audience (default: "Orbit")
-- `Jwt__AccessTokenExpirationMinutes` - Access token expiration (default: 15)
-- `Jwt__RefreshTokenExpirationDays` - Refresh token expiration (default: 7)
+- `Jwt__AccessTokenExpirationMinutes` - Access token expiration (default: 60 minutes)
+- `Jwt__RefreshTokenExpirationDays` - Refresh token expiration (default: 7 days)
+
+**Logging:**
+- `Seq__ServerUrl` - Seq server URL for structured logging (default: "http://localhost:5341")
 
 **Email:**
 - Email service configuration (currently using console output for development)
 
 ### Docker Compose Configuration
 
-The `docker-compose.yml` file includes:
-- **PostgreSQL** database (port 5432)
-- **Orbit API** (port 3000)
-- Automatic database initialization and seeding
-- Health checks for both services
+The `compose.yaml` file includes:
+- **PostgreSQL** database (port 5432) with health checks
+- **Seq** logging server (port 5341) for structured logs
+- **Papercut SMTP** (ports 25, 8080) for email testing
+- **Orbit API** (port 3000) with automatic migrations and seeding
+- Persistent volumes for data storage
+- Dedicated network for service communication
 
 ## 🚦 Getting Started
 
@@ -319,11 +357,15 @@ cd Orbit
 docker compose up --build
 ```
 
-The API will be available at `http://localhost:3000/graphql`
+The services will be available at:
+- **GraphQL API**: http://localhost:3000/graphql
+- **Seq Logs**: http://localhost:5341 (username: admin, password: admin)
+- **Papercut SMTP**: http://localhost:8080 (email testing)
 
 3. **Explore the GraphQL API**
 - Open your browser to `http://localhost:3000/graphql`
 - Use the GraphQL playground to explore the schema and run queries
+- Login with the default admin account: `admin@orbit.local` / `Admin123!`
 
 ### Development Setup
 
@@ -344,6 +386,21 @@ dotnet run --project Api
 
 ### Example Queries
 
+**Health Check:**
+```graphql
+query {
+  health {
+    status
+    timestamp
+    environment
+    database
+    version
+    uptimeSeconds
+    details
+  }
+}
+```
+
 **Register a new user:**
 ```graphql
 mutation {
@@ -352,10 +409,16 @@ mutation {
     password: "SecurePass123!"
     firstName: "John"
     lastName: "Doe"
+    roleId: "00000000-0000-0000-0000-000000000002"  # User role ID
   }) {
     user {
       userId
       email
+      firstName
+      lastName
+      isEmailVerified
+      status
+      createdAt
     }
     errors {
       code
@@ -372,9 +435,15 @@ mutation {
     email: "user@example.com"
     password: "SecurePass123!"
   }) {
+    user {
+      userId
+      email
+      firstName
+      lastName
+    }
     accessToken
     refreshToken
-    expiresIn
+    expiresAt
     errors {
       code
       message
@@ -391,12 +460,41 @@ query {
     email
     firstName
     lastName
+    isEmailVerified
+    status
     roles
+    permissions
+    createdAt
+    lastLoginAt
   }
 }
 ```
 
-**Get all roles (requires admin):**
+**Get all users with pagination (requires users:read):**
+```graphql
+query {
+  users(page: 1, pageSize: 10) {
+    users {
+      userId
+      email
+      firstName
+      lastName
+      status
+      createdAt
+    }
+    totalCount
+    page
+    pageSize
+    totalPages
+    errors {
+      code
+      message
+    }
+  }
+}
+```
+
+**Get all roles (requires roles:read):**
 ```graphql
 query {
   roles {
@@ -406,6 +504,22 @@ query {
       description
       permissionIds
     }
+    errors {
+      code
+      message
+    }
+  }
+}
+```
+
+**Suspend user (requires users:suspend):**
+```graphql
+mutation {
+  suspendUser(input: {
+    userId: "00000000-0000-0000-0000-000000000001"
+  }) {
+    isSuccess
+    message
     errors {
       code
       message
