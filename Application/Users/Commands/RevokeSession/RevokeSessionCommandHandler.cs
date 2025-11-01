@@ -1,6 +1,6 @@
 using Domain.Abstractions;
-using Domain.Users.Errors;
-using Domain.Users.Session;
+using Domain.Session;
+using Domain.Users;
 using MediatR;
 using Microsoft.Extensions.Logging;
 

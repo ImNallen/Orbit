@@ -1,4 +1,4 @@
-using Domain.Users.Permission;
+using Domain.Permission;
 using Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 

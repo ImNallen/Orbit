@@ -34,6 +34,20 @@ builder.Services.AddHttpContextAccessor(); // Required for accessing HTTP contex
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
+// Add CORS for development
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("DevelopmentCorsPolicy", policy =>
+        {
+            policy.AllowAnyOrigin()
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        });
+    });
+}
+
 // Add JWT Authentication
 string jwtSecret = builder.Configuration["Jwt:Secret"] ?? throw new InvalidOperationException("JWT Secret is not configured");
 string jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? throw new InvalidOperationException("JWT Issuer is not configured");
@@ -127,6 +141,12 @@ if (app.Environment.IsDevelopment())
     await seeder.SeedAsync();
 
     app.MapOpenApi();
+}
+
+// Use CORS in development
+if (app.Environment.IsDevelopment())
+{
+    app.UseCors("DevelopmentCorsPolicy");
 }
 
 app.UseHttpsRedirection();

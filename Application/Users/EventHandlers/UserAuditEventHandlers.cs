@@ -1,6 +1,6 @@
 using Application.Abstractions.Events;
-using Domain.Users.Role;
-using Domain.Users.User;
+using Domain.Role.Events;
+using Domain.Users.Events;
 using MediatR;
 using Microsoft.Extensions.Logging;
 

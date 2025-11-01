@@ -1,8 +1,9 @@
 using Application.Abstractions.Email;
 using Domain.Abstractions;
-using Domain.Users.Errors;
-using Domain.Users.Role;
-using Domain.Users.User;
+using Domain.Role;
+using Domain.Shared.ValueObjects;
+using Domain.Users;
+using Domain.Users.ValueObjects;
 using MediatR;
 
 namespace Application.Users.Commands.RegisterUser;

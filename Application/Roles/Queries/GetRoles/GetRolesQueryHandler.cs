@@ -1,5 +1,5 @@
 using Domain.Abstractions;
-using Domain.Users.Role;
+using Domain.Role;
 using MediatR;
 using Microsoft.Extensions.Logging;
 

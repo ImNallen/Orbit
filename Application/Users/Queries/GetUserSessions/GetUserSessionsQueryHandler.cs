@@ -1,5 +1,5 @@
 using Domain.Abstractions;
-using Domain.Users.Session;
+using Domain.Session;
 using MediatR;
 
 namespace Application.Users.Queries.GetUserSessions;

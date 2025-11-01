@@ -1,4 +1,4 @@
-using Domain.Users.Session;
+using Domain.Session;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

@@ -1,4 +1,4 @@
-using Domain.Users.Permission;
+using Domain.Permission;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

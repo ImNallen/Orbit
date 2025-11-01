@@ -1,4 +1,4 @@
-using Domain.Users.Session;
+using Domain.Session;
 using Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 

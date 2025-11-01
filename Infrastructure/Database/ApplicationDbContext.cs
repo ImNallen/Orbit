@@ -1,9 +1,9 @@
 using Application.Abstractions.Events;
 using Domain.Abstractions;
-using Domain.Users.Permission;
-using Domain.Users.Role;
-using Domain.Users.Session;
-using Domain.Users.User;
+using Domain.Permission;
+using Domain.Role;
+using Domain.Session;
+using Domain.Users;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 

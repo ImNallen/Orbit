@@ -1,5 +1,5 @@
 using Domain.Abstractions;
-using Domain.Users.User;
+using Domain.Users.ValueObjects;
 
 namespace Infrastructure.Authentication;
 

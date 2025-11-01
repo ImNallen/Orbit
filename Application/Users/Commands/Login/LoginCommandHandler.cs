@@ -1,7 +1,8 @@
 using Domain.Abstractions;
-using Domain.Users.Errors;
-using Domain.Users.Session;
-using Domain.Users.User;
+using Domain.Session;
+using Domain.Shared.ValueObjects;
+using Domain.Users;
+using Domain.Users.ValueObjects;
 using MediatR;
 using Microsoft.Extensions.Logging;
 

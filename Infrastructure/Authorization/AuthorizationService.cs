@@ -1,7 +1,7 @@
 using Domain.Abstractions;
-using Domain.Users.Permission;
-using Domain.Users.Role;
-using Domain.Users.User;
+using Domain.Permission;
+using Domain.Role;
+using Domain.Users;
 
 namespace Infrastructure.Authorization;
 

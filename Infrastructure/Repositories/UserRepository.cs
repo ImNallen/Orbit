@@ -1,4 +1,7 @@
-using Domain.Users.User;
+using Domain.Shared.ValueObjects;
+using Domain.Users;
+using Domain.Users.Enums;
+using Domain.Users.ValueObjects;
 using Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 

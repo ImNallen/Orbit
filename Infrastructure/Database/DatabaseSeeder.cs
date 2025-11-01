@@ -1,7 +1,9 @@
 using Domain.Abstractions;
-using Domain.Users.Permission;
-using Domain.Users.Role;
-using Domain.Users.User;
+using Domain.Permission;
+using Domain.Role;
+using Domain.Shared.ValueObjects;
+using Domain.Users;
+using Domain.Users.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 

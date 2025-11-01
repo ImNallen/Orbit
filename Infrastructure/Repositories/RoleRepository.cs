@@ -1,4 +1,4 @@
-using Domain.Users.Role;
+using Domain.Role;
 using Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 
