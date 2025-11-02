@@ -3,7 +3,7 @@ using Api.GraphQL.Payloads;
 namespace Api.GraphQL.Types;
 
 /// <summary>
-/// GraphQL type for the current authenticated user with roles and permissions.
+/// GraphQL type for the current authenticated user with role and permissions.
 /// </summary>
 public sealed class UserType
 {
@@ -15,12 +15,12 @@ public sealed class UserType
     public string Status { get; init; } = string.Empty;
     public DateTime CreatedAt { get; init; }
     public DateTime? LastLoginAt { get; init; }
-    public IReadOnlyList<string> Roles { get; init; } = Array.Empty<string>();
+    public string? Role { get; init; }
     public IReadOnlyList<string> Permissions { get; init; } = Array.Empty<string>();
 }
 
 /// <summary>
-/// GraphQL type for user summary (without roles and permissions).
+/// GraphQL type for user summary (without permissions).
 /// </summary>
 public sealed class UserSummaryType
 {
@@ -32,6 +32,7 @@ public sealed class UserSummaryType
     public string Status { get; init; } = string.Empty;
     public DateTime CreatedAt { get; init; }
     public DateTime? LastLoginAt { get; init; }
+    public string? Role { get; init; }
 }
 
 /// <summary>

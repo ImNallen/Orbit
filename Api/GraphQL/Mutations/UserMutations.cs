@@ -25,6 +25,7 @@ namespace Api.GraphQL.Mutations;
 /// <summary>
 /// GraphQL mutations for user operations.
 /// </summary>
+[ExtendObjectType("Mutation")]
 public sealed class UserMutations
 {
     /// <summary>
@@ -300,7 +301,7 @@ public sealed class UserMutations
     /// Suspends a user account.
     /// Requires users:suspend permission.
     /// </summary>
-    [Authorize(Policy = "users:suspend")]
+    [Authorize(Policy = "users:update")]
     public async Task<SuspendUserPayload> SuspendUserAsync(
         SuspendUserInput input,
         [Service] IMediator mediator,
@@ -320,9 +321,9 @@ public sealed class UserMutations
 
     /// <summary>
     /// Activates a suspended user account.
-    /// Requires users:activate permission.
+    /// Requires users:update permission.
     /// </summary>
-    [Authorize(Policy = "users:activate")]
+    [Authorize(Policy = "users:update")]
     public async Task<ActivateUserPayload> ActivateUserAsync(
         ActivateUserInput input,
         [Service] IMediator mediator,
@@ -364,9 +365,9 @@ public sealed class UserMutations
 
     /// <summary>
     /// Unlocks a locked user account.
-    /// Requires users:unlock permission.
+    /// Requires users:update permission.
     /// </summary>
-    [Authorize(Policy = "users:unlock")]
+    [Authorize(Policy = "users:update")]
     public async Task<UnlockUserAccountPayload> UnlockUserAccountAsync(
         UnlockUserAccountInput input,
         [Service] IMediator mediator,

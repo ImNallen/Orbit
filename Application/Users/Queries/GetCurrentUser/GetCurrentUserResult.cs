@@ -12,6 +12,6 @@ public sealed record GetCurrentUserResult(
     string Status,
     DateTime CreatedAt,
     DateTime? LastLoginAt,
-    IReadOnlyList<string> Roles,
+    string? Role,
     IReadOnlyList<string> Permissions);
 

@@ -63,7 +63,7 @@ public class DatabaseSeeder
             Permission.Create("users:read", "Read user information", "users", "read"),
             Permission.Create("users:update", "Update user information", "users", "update"),
             Permission.Create("users:delete", "Delete users", "users", "delete"),
-            
+
             // Role permissions
             Permission.Create("roles:create", "Create new roles", "roles", "create"),
             Permission.Create("roles:read", "Read role information", "roles", "read"),
@@ -71,13 +71,19 @@ public class DatabaseSeeder
             Permission.Create("roles:delete", "Delete roles", "roles", "delete"),
             Permission.Create("roles:assign", "Assign roles to users", "roles", "assign"),
             Permission.Create("roles:remove", "Remove roles from users", "roles", "remove"),
-            
+
             // Permission permissions
             Permission.Create("permissions:read", "Read permission information", "permissions", "read"),
-            
+
             // Session permissions
             Permission.Create("sessions:read", "Read session information", "sessions", "read"),
             Permission.Create("sessions:revoke", "Revoke sessions", "sessions", "revoke"),
+
+            // Customer permissions
+            Permission.Create("customers:create", "Create new customers", "customers", "create"),
+            Permission.Create("customers:read", "Read customer information", "customers", "read"),
+            Permission.Create("customers:update", "Update customer information", "customers", "update"),
+            Permission.Create("customers:delete", "Delete customers", "customers", "delete"),
         };
 
         await _context.Permissions.AddRangeAsync(permissions);

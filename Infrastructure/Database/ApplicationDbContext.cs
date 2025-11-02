@@ -1,5 +1,6 @@
 using Application.Abstractions.Events;
 using Domain.Abstractions;
+using Domain.Customers;
 using Domain.Permission;
 using Domain.Role;
 using Domain.Session;
@@ -31,6 +32,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Permission> Permissions => Set<Permission>();
     public DbSet<Session> Sessions => Set<Session>();
     public DbSet<PasswordHistory> PasswordHistory => Set<PasswordHistory>();
+    public DbSet<Customer> Customers => Set<Customer>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

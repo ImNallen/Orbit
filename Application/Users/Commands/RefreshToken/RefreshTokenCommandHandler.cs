@@ -93,11 +93,12 @@ public sealed class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCom
 
         _logger.LogDebug("Revoked old session {SessionId} for user {UserId}", session.Id, user.Id);
 
-        // 7. Load user roles and permissions
-        List<string> roles = await _authorizationService.GetUserRolesAsync(user.Id, cancellationToken);
+        // 7. Load user role and permissions
+        string? role = await _authorizationService.GetUserRoleAsync(user.Id, cancellationToken);
         List<string> permissions = await _authorizationService.GetUserPermissionsAsync(user.Id, cancellationToken);
 
         // 8. Generate new tokens (both access and refresh)
+        IEnumerable<string> roles = role != null ? [role] : [];
         string newAccessToken = _jwtTokenService.GenerateAccessToken(user.Id, user.Email.Value, roles, permissions);
         string newRefreshToken = _jwtTokenService.GenerateRefreshToken();
 

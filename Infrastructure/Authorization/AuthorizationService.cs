@@ -24,24 +24,24 @@ public class AuthorizationService : IAuthorizationService
         _permissionRepository = permissionRepository;
     }
 
-    public async Task<List<string>> GetUserRolesAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<string?> GetUserRoleAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         // 1. Get user to access their role ID
         User? user = await _userRepository.GetByIdAsync(userId, cancellationToken);
         if (user is null)
         {
-            return [];
+            return null;
         }
 
         // 2. Load role from database
         Role? role = await _roleRepository.GetByIdAsync(user.RoleId, cancellationToken);
         if (role is null)
         {
-            return [];
+            return null;
         }
 
         // 3. Return role name
-        return [role.Name];
+        return role.Name;
     }
 
     public async Task<List<string>> GetUserPermissionsAsync(Guid userId, CancellationToken cancellationToken = default)

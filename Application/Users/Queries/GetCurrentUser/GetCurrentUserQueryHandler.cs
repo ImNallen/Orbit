@@ -39,12 +39,12 @@ public sealed class GetCurrentUserQueryHandler
             return Result<GetCurrentUserResult, DomainError>.Failure(UserErrors.UserNotFound);
         }
 
-        // 2. Load user roles and permissions
-        List<string> roles = await _authorizationService.GetUserRolesAsync(user.Id, cancellationToken);
+        // 2. Load user role and permissions
+        string? role = await _authorizationService.GetUserRoleAsync(user.Id, cancellationToken);
         List<string> permissions = await _authorizationService.GetUserPermissionsAsync(user.Id, cancellationToken);
 
-        _logger.LogDebug("User {UserId} has {RoleCount} roles and {PermissionCount} permissions",
-            user.Id, roles.Count, permissions.Count);
+        _logger.LogDebug("User {UserId} has role {Role} and {PermissionCount} permissions",
+            user.Id, role ?? "none", permissions.Count);
 
         // 3. Return result
         return Result<GetCurrentUserResult, DomainError>.Success(
@@ -57,7 +57,7 @@ public sealed class GetCurrentUserQueryHandler
                 user.Status.ToString(),
                 user.CreatedAt,
                 user.LastLoginAt,
-                roles,
+                role,
                 permissions));
     }
 }

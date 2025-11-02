@@ -1,4 +1,5 @@
 using Domain.Abstractions;
+using Domain.Role;
 using Domain.Users;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -12,13 +13,16 @@ public sealed class GetUsersQueryHandler
     : IRequestHandler<GetUsersQuery, Result<GetUsersResult, DomainError>>
 {
     private readonly IUserRepository _userRepository;
+    private readonly IRoleRepository _roleRepository;
     private readonly ILogger<GetUsersQueryHandler> _logger;
 
     public GetUsersQueryHandler(
         IUserRepository userRepository,
+        IRoleRepository roleRepository,
         ILogger<GetUsersQueryHandler> logger)
     {
         _userRepository = userRepository;
+        _roleRepository = roleRepository;
         _logger = logger;
     }
 
@@ -49,7 +53,14 @@ public sealed class GetUsersQueryHandler
         // 4. Get users
         List<User> users = await _userRepository.GetAllAsync(skip, take, cancellationToken);
 
-        // 5. Map to DTOs
+        // 5. Get all unique role IDs from users
+        var roleIds = users.Select(u => u.RoleId).Distinct().ToList();
+
+        // 6. Fetch all roles in one query
+        List<Role> roles = await _roleRepository.GetByIdsAsync(roleIds, cancellationToken);
+        var roleDict = roles.ToDictionary(r => r.Id, r => r.Name);
+
+        // 7. Map to DTOs
         var userDtos = users.Select(u => new UserDto(
             u.Id,
             u.Email.Value,
@@ -58,9 +69,10 @@ public sealed class GetUsersQueryHandler
             u.IsEmailVerified,
             u.Status.ToString(),
             u.CreatedAt,
-            u.LastLoginAt)).ToList();
+            u.LastLoginAt,
+            roleDict.GetValueOrDefault(u.RoleId))).ToList();
 
-        // 6. Calculate total pages
+        // 8. Calculate total pages
         int totalPages = (int)Math.Ceiling((double)totalCount / query.PageSize);
 
         _logger.LogDebug("Retrieved {UserCount} users out of {TotalCount} total users",

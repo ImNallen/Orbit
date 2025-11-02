@@ -107,6 +107,11 @@ builder.Services.AddAuthorization(options =>
         policy.Requirements.Add(new PermissionRequirement("sessions:read")));
     options.AddPolicy("sessions:delete", policy =>
         policy.Requirements.Add(new PermissionRequirement("sessions:delete")));
+    
+    options.AddPolicy("customers:create", policy =>
+        policy.Requirements.Add(new PermissionRequirement("customers:create")));
+    options.AddPolicy("customers:read", policy =>
+        policy.Requirements.Add(new PermissionRequirement("customers:read")));
 });
 
 // Register the permission authorization handler
@@ -119,7 +124,10 @@ builder.Services
         .AddTypeExtension<HealthQueries>()
         .AddTypeExtension<UserQueries>()
         .AddTypeExtension<RoleQueries>()
-    .AddMutationType<UserMutations>()
+        .AddTypeExtension<CustomerQueries>()
+    .AddMutationType(d => d.Name("Mutation"))
+        .AddTypeExtension<UserMutations>()
+        .AddTypeExtension<CustomerMutations>()
     .AddAuthorization()
     .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = builder.Environment.IsDevelopment());
 

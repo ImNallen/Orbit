@@ -52,7 +52,7 @@ public sealed class UserQueries
             Status = result.Value.Status,
             CreatedAt = result.Value.CreatedAt,
             LastLoginAt = result.Value.LastLoginAt,
-            Roles = result.Value.Roles,
+            Role = result.Value.Role,
             Permissions = result.Value.Permissions
         };
     }
@@ -95,7 +95,8 @@ public sealed class UserQueries
                 IsEmailVerified = u.IsEmailVerified,
                 Status = u.Status,
                 CreatedAt = u.CreatedAt,
-                LastLoginAt = u.LastLoginAt
+                LastLoginAt = u.LastLoginAt,
+                Role = u.RoleName
             }).ToList(),
             TotalCount = result.Value.TotalCount,
             Page = result.Value.Page,

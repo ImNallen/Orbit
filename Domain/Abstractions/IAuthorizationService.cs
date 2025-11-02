@@ -6,12 +6,12 @@ namespace Domain.Abstractions;
 public interface IAuthorizationService
 {
     /// <summary>
-    /// Gets all role names for a user.
+    /// Gets the role name for a user.
     /// </summary>
     /// <param name="userId">The user's unique identifier.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>List of role names (e.g., ["Admin", "User"]).</returns>
-    Task<List<string>> GetUserRolesAsync(Guid userId, CancellationToken cancellationToken = default);
+    /// <returns>Role name (e.g., "Admin") or null if user has no role.</returns>
+    Task<string?> GetUserRoleAsync(Guid userId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets all permission names for a user (aggregated from all their roles).

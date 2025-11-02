@@ -97,15 +97,16 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, Result<L
             return Result<LoginResult, DomainError>.Failure(UserErrors.InvalidCredentials);
         }
 
-        // 5. Load user roles and permissions
-        List<string> roles = await _authorizationService.GetUserRolesAsync(user.Id, cancellationToken);
+        // 5. Load user role and permissions
+        string? role = await _authorizationService.GetUserRoleAsync(user.Id, cancellationToken);
         List<string> permissions = await _authorizationService.GetUserPermissionsAsync(user.Id, cancellationToken);
 
-        _logger.LogDebug("User {UserId} has {RoleCount} roles and {PermissionCount} permissions",
-            user.Id, roles.Count, permissions.Count);
+        _logger.LogDebug("User {UserId} has role {Role} and {PermissionCount} permissions",
+            user.Id, role ?? "none", permissions.Count);
 
         // 6. Generate tokens
         string refreshToken = _jwtTokenService.GenerateRefreshToken();
+        IEnumerable<string> roles = role != null ? [role] : [];
         string accessToken = _jwtTokenService.GenerateAccessToken(
             user.Id,
             user.Email.Value,

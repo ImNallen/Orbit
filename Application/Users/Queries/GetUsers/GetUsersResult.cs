@@ -21,5 +21,6 @@ public sealed record UserDto(
     bool IsEmailVerified,
     string Status,
     DateTime CreatedAt,
-    DateTime? LastLoginAt);
+    DateTime? LastLoginAt,
+    string? RoleName);
 
