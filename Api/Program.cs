@@ -112,6 +112,19 @@ builder.Services.AddAuthorization(options =>
         policy.Requirements.Add(new PermissionRequirement("customers:create")));
     options.AddPolicy("customers:read", policy =>
         policy.Requirements.Add(new PermissionRequirement("customers:read")));
+    options.AddPolicy("customers:update", policy =>
+        policy.Requirements.Add(new PermissionRequirement("customers:update")));
+    options.AddPolicy("customers:delete", policy =>
+        policy.Requirements.Add(new PermissionRequirement("customers:delete")));
+
+    options.AddPolicy("products:create", policy =>
+        policy.Requirements.Add(new PermissionRequirement("products:create")));
+    options.AddPolicy("products:read", policy =>
+        policy.Requirements.Add(new PermissionRequirement("products:read")));
+    options.AddPolicy("products:update", policy =>
+        policy.Requirements.Add(new PermissionRequirement("products:update")));
+    options.AddPolicy("products:delete", policy =>
+        policy.Requirements.Add(new PermissionRequirement("products:delete")));
 });
 
 // Register the permission authorization handler
@@ -125,9 +138,11 @@ builder.Services
         .AddTypeExtension<UserQueries>()
         .AddTypeExtension<RoleQueries>()
         .AddTypeExtension<CustomerQueries>()
+        .AddTypeExtension<ProductQueries>()
     .AddMutationType(d => d.Name("Mutation"))
         .AddTypeExtension<UserMutations>()
         .AddTypeExtension<CustomerMutations>()
+        .AddTypeExtension<ProductMutations>()
     .AddAuthorization()
     .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = builder.Environment.IsDevelopment());
 

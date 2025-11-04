@@ -13,6 +13,29 @@ namespace Infrastructure.Database.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
+                name: "customers",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    email = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    first_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    last_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    phone_number = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
+                    street = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    city = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    state = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    country = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    zip_code = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_customers", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "password_history",
                 columns: table => new
                 {
@@ -39,6 +62,26 @@ namespace Infrastructure.Database.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_permissions", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "products",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    description = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: false),
+                    sku = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    stock_quantity = table.Column<int>(type: "integer", nullable: false),
+                    status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    price = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
+                    currency = table.Column<string>(type: "character varying(3)", maxLength: 3, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_products", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -103,6 +146,12 @@ namespace Infrastructure.Database.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "ix_customers_email",
+                table: "customers",
+                column: "email",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "ix_password_history_user_id",
                 table: "password_history",
                 column: "user_id");
@@ -127,6 +176,12 @@ namespace Infrastructure.Database.Migrations
                 name: "ix_permissions_resource_action",
                 table: "permissions",
                 columns: new[] { "resource", "action" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_products_sku",
+                table: "products",
+                column: "sku",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -177,10 +232,16 @@ namespace Infrastructure.Database.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "customers");
+
+            migrationBuilder.DropTable(
                 name: "password_history");
 
             migrationBuilder.DropTable(
                 name: "permissions");
+
+            migrationBuilder.DropTable(
+                name: "products");
 
             migrationBuilder.DropTable(
                 name: "roles");

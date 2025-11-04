@@ -29,13 +29,13 @@ public sealed class Customer : Entity
     private Customer() {}
 
     // Profile Information
-    public Email Email { get; private set; } = null!;
+    public Email Email { get; private set; }
 
-    public FullName FullName { get; private set; } = null!;
+    public FullName FullName { get; private set; }
 
     public PhoneNumber? PhoneNumber { get; private set; }
 
-    public Address Address { get; private set; } = null!;
+    public Address Address { get; private set; }
 
     // Account Status
     public CustomerStatus Status { get; private set; }

@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Database.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251027102122_Initial")]
+    [Migration("20251104120344_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -26,7 +26,32 @@ namespace Infrastructure.Database.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Domain.Users.Permission.Permission", b =>
+            modelBuilder.Entity("Domain.Customers.Customer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("customers", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Permission.Permission", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -72,7 +97,74 @@ namespace Infrastructure.Database.Migrations
                     b.ToTable("permissions", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Users.Role.Role", b =>
+            modelBuilder.Entity("Domain.Products.Product", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Sku")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasColumnName("sku");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<int>("StockQuantity")
+                        .HasColumnType("integer")
+                        .HasColumnName("stock_quantity");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.ComplexProperty<Dictionary<string, object>>("Price", "Domain.Products.Product.Price#Money", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<decimal>("Amount")
+                                .HasPrecision(18, 2)
+                                .HasColumnType("numeric(18,2)")
+                                .HasColumnName("price");
+
+                            b1.Property<string>("Currency")
+                                .IsRequired()
+                                .HasMaxLength(3)
+                                .HasColumnType("character varying(3)")
+                                .HasColumnName("currency");
+                        });
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Sku")
+                        .IsUnique()
+                        .HasDatabaseName("ix_products_sku");
+
+                    b.ToTable("products", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Role.Role", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -104,7 +196,7 @@ namespace Infrastructure.Database.Migrations
                     b.ToTable("roles", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Users.Session.Session", b =>
+            modelBuilder.Entity("Domain.Session.Session", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -170,7 +262,7 @@ namespace Infrastructure.Database.Migrations
                     b.ToTable("sessions", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Users.User.PasswordHistory", b =>
+            modelBuilder.Entity("Domain.Users.PasswordHistory", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -195,7 +287,7 @@ namespace Infrastructure.Database.Migrations
                     b.ToTable("password_history", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Users.User.User", b =>
+            modelBuilder.Entity("Domain.Users.User", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid")
@@ -264,9 +356,132 @@ namespace Infrastructure.Database.Migrations
                     b.ToTable("users", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Users.User.PasswordHistory", b =>
+            modelBuilder.Entity("Domain.Customers.Customer", b =>
                 {
-                    b.OwnsOne("Domain.Users.User.PasswordHash", "PasswordHash", b1 =>
+                    b.OwnsOne("Domain.Shared.ValueObjects.Email", "Email", b1 =>
+                        {
+                            b1.Property<Guid>("CustomerId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("Value")
+                                .IsRequired()
+                                .HasMaxLength(255)
+                                .HasColumnType("character varying(255)")
+                                .HasColumnName("email");
+
+                            b1.HasKey("CustomerId");
+
+                            b1.HasIndex("Value")
+                                .IsUnique()
+                                .HasDatabaseName("ix_customers_email");
+
+                            b1.ToTable("customers");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CustomerId");
+                        });
+
+                    b.OwnsOne("Domain.Shared.ValueObjects.FullName", "FullName", b1 =>
+                        {
+                            b1.Property<Guid>("CustomerId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("FirstName")
+                                .IsRequired()
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)")
+                                .HasColumnName("first_name");
+
+                            b1.Property<string>("LastName")
+                                .IsRequired()
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)")
+                                .HasColumnName("last_name");
+
+                            b1.HasKey("CustomerId");
+
+                            b1.ToTable("customers");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CustomerId");
+                        });
+
+                    b.OwnsOne("Domain.Shared.ValueObjects.Address", "Address", b1 =>
+                        {
+                            b1.Property<Guid>("CustomerId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("City")
+                                .IsRequired()
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)")
+                                .HasColumnName("city");
+
+                            b1.Property<string>("Country")
+                                .IsRequired()
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)")
+                                .HasColumnName("country");
+
+                            b1.Property<string>("State")
+                                .IsRequired()
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)")
+                                .HasColumnName("state");
+
+                            b1.Property<string>("Street")
+                                .IsRequired()
+                                .HasMaxLength(200)
+                                .HasColumnType("character varying(200)")
+                                .HasColumnName("street");
+
+                            b1.Property<string>("ZipCode")
+                                .IsRequired()
+                                .HasMaxLength(20)
+                                .HasColumnType("character varying(20)")
+                                .HasColumnName("zip_code");
+
+                            b1.HasKey("CustomerId");
+
+                            b1.ToTable("customers");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CustomerId");
+                        });
+
+                    b.OwnsOne("Domain.Shared.ValueObjects.PhoneNumber", "PhoneNumber", b1 =>
+                        {
+                            b1.Property<Guid>("CustomerId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("Value")
+                                .HasMaxLength(20)
+                                .HasColumnType("character varying(20)")
+                                .HasColumnName("phone_number");
+
+                            b1.HasKey("CustomerId");
+
+                            b1.ToTable("customers");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CustomerId");
+                        });
+
+                    b.Navigation("Address")
+                        .IsRequired();
+
+                    b.Navigation("Email")
+                        .IsRequired();
+
+                    b.Navigation("FullName")
+                        .IsRequired();
+
+                    b.Navigation("PhoneNumber");
+                });
+
+            modelBuilder.Entity("Domain.Users.PasswordHistory", b =>
+                {
+                    b.OwnsOne("Domain.Users.ValueObjects.PasswordHash", "PasswordHash", b1 =>
                         {
                             b1.Property<Guid>("PasswordHistoryId")
                                 .HasColumnType("uuid");
@@ -289,9 +504,9 @@ namespace Infrastructure.Database.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Domain.Users.User.User", b =>
+            modelBuilder.Entity("Domain.Users.User", b =>
                 {
-                    b.OwnsOne("Domain.Users.User.Email", "Email", b1 =>
+                    b.OwnsOne("Domain.Shared.ValueObjects.Email", "Email", b1 =>
                         {
                             b1.Property<Guid>("UserId")
                                 .HasColumnType("uuid");
@@ -314,7 +529,7 @@ namespace Infrastructure.Database.Migrations
                                 .HasForeignKey("UserId");
                         });
 
-                    b.OwnsOne("Domain.Users.User.FullName", "FullName", b1 =>
+                    b.OwnsOne("Domain.Shared.ValueObjects.FullName", "FullName", b1 =>
                         {
                             b1.Property<Guid>("UserId")
                                 .HasColumnType("uuid");
@@ -339,7 +554,7 @@ namespace Infrastructure.Database.Migrations
                                 .HasForeignKey("UserId");
                         });
 
-                    b.OwnsOne("Domain.Users.User.PasswordHash", "PasswordHash", b1 =>
+                    b.OwnsOne("Domain.Users.ValueObjects.PasswordHash", "PasswordHash", b1 =>
                         {
                             b1.Property<Guid>("UserId")
                                 .HasColumnType("uuid");

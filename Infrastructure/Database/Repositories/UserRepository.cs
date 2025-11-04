@@ -1,11 +1,9 @@
 using Domain.Shared.ValueObjects;
 using Domain.Users;
 using Domain.Users.Enums;
-using Domain.Users.ValueObjects;
-using Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 
-namespace Infrastructure.Repositories;
+namespace Infrastructure.Database.Repositories;
 
 /// <summary>
 /// Repository implementation for User aggregate.

@@ -1,10 +1,9 @@
 using Domain.Customers;
 using Domain.Customers.Enums;
 using Domain.Shared.ValueObjects;
-using Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 
-namespace Infrastructure.Repositories;
+namespace Infrastructure.Database.Repositories;
 
 /// <summary>
 /// Repository implementation for Customer aggregate.

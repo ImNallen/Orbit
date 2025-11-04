@@ -4,16 +4,17 @@ using Application.Abstractions.Email;
 using Domain.Abstractions;
 using Domain.Customers;
 using Domain.Permission;
+using Domain.Products;
 using Domain.Role;
 using Domain.Session;
 using Domain.Users;
 using Infrastructure.Authentication;
 using Infrastructure.Authorization;
 using Infrastructure.Database;
+using Infrastructure.Database.Repositories;
 using Infrastructure.EmailConfiguration;
 using Infrastructure.EmailServices;
 using Infrastructure.Http;
-using Infrastructure.Repositories;
 using Infrastructure.Time;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -54,6 +55,7 @@ public static class DependencyInjection
         services.AddScoped<IPermissionRepository, PermissionRepository>();
         services.AddScoped<ISessionRepository, SessionRepository>();
         services.AddScoped<ICustomerRepository, CustomerRepository>();
+        services.AddScoped<IProductRepository, ProductRepository>();
 
         // Services
         services.AddSingleton<IPasswordHasher, PasswordHasher>();

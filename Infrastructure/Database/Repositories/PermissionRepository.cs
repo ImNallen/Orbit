@@ -1,8 +1,7 @@
 using Domain.Permission;
-using Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 
-namespace Infrastructure.Repositories;
+namespace Infrastructure.Database.Repositories;
 
 /// <summary>
 /// Repository implementation for Permission aggregate.

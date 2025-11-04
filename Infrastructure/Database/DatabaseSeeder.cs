@@ -84,6 +84,12 @@ public class DatabaseSeeder
             Permission.Create("customers:read", "Read customer information", "customers", "read"),
             Permission.Create("customers:update", "Update customer information", "customers", "update"),
             Permission.Create("customers:delete", "Delete customers", "customers", "delete"),
+
+            // Product permissions
+            Permission.Create("products:create", "Create new products", "products", "create"),
+            Permission.Create("products:read", "Read product information", "products", "read"),
+            Permission.Create("products:update", "Update product information", "products", "update"),
+            Permission.Create("products:delete", "Delete products", "products", "delete"),
         };
 
         await _context.Permissions.AddRangeAsync(permissions);
