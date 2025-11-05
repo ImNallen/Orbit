@@ -77,7 +77,6 @@ public sealed class ProductQueries
             Name = p.Name,
             Price = p.Price,
             Sku = p.Sku,
-            StockQuantity = p.StockQuantity,
             Status = p.Status
         }).ToList();
 
@@ -118,7 +117,6 @@ public sealed class ProductQueries
             Description = product.Description,
             Price = product.Price,
             Sku = product.Sku,
-            StockQuantity = product.StockQuantity,
             Status = product.Status,
             CreatedAt = product.CreatedAt,
             UpdatedAt = product.UpdatedAt
@@ -152,7 +150,6 @@ public sealed class ProductQueries
             Description = product.Description,
             Price = product.Price,
             Sku = product.Sku,
-            StockQuantity = product.StockQuantity,
             Status = product.Status,
             CreatedAt = product.CreatedAt,
             UpdatedAt = product.UpdatedAt

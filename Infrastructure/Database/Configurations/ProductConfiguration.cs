@@ -69,11 +69,6 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .IsUnique()
             .HasDatabaseName("ix_products_sku");
 
-        // Stock quantity
-        builder.Property(p => p.StockQuantity)
-            .HasColumnName("stock_quantity")
-            .IsRequired();
-
         // Product status enum
         builder.Property(p => p.Status)
             .HasColumnName("status")

@@ -72,7 +72,6 @@ public sealed class GetProductsQueryHandler
             p.Description.Value,
             p.Price.Amount,
             p.Sku.Value,
-            p.StockQuantity,
             p.Status.ToString(),
             p.CreatedAt,
             p.UpdatedAt)).ToList();

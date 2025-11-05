@@ -1,6 +1,7 @@
 using Application.Abstractions.Events;
 using Domain.Abstractions;
 using Domain.Customers;
+using Domain.Locations;
 using Domain.Permission;
 using Domain.Products;
 using Domain.Role;
@@ -35,6 +36,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<PasswordHistory> PasswordHistory => Set<PasswordHistory>();
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<Product> Products => Set<Product>();
+    public DbSet<Location> Locations => Set<Location>();
+    public DbSet<Domain.Inventory.Inventory> Inventory => Set<Domain.Inventory.Inventory>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

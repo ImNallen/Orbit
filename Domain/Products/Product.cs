@@ -23,7 +23,6 @@ public sealed class Product : Entity
         Price = price;
         Sku = sku;
         Status = ProductStatus.Active;
-        StockQuantity = 0;
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = DateTime.UtcNow;
     }
@@ -39,9 +38,6 @@ public sealed class Product : Entity
     public Money Price { get; private set; }
 
     public Sku Sku { get; private set; }
-
-    // Inventory
-    public int StockQuantity { get; private set; }
 
     // Product Status
     public ProductStatus Status { get; private set; }
@@ -106,24 +102,6 @@ public sealed class Product : Entity
     }
 
     /// <summary>
-    /// Updates the stock quantity.
-    /// </summary>
-    public Result<DomainError> UpdateStock(int quantity)
-    {
-        if (quantity < 0)
-        {
-            return Result<DomainError>.Failure(ProductErrors.InvalidStockQuantity);
-        }
-
-        StockQuantity = quantity;
-        UpdatedAt = DateTime.UtcNow;
-
-        Raise(new ProductStockUpdatedEvent(Id, StockQuantity));
-
-        return Result<DomainError>.Success();
-    }
-
-    /// <summary>
     /// Deactivates the product.
     /// </summary>
     public Result<DomainError> Deactivate()
@@ -157,6 +135,7 @@ public sealed class Product : Entity
 
     /// <summary>
     /// Checks if the product is available for purchase.
+    /// Note: Stock availability should be checked via the Inventory aggregate.
     /// </summary>
-    public bool IsAvailable() => Status == ProductStatus.Active && StockQuantity > 0;
+    public bool IsAvailable() => Status == ProductStatus.Active;
 }

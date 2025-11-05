@@ -16,6 +16,7 @@ using Application.Users.Commands.ActivateUser;
 using Application.Users.Commands.DeleteUser;
 using Application.Users.Commands.UnlockUserAccount;
 using Application.Users.Commands.UpdateUserProfile;
+using Application.Users.Commands.ChangePassword;
 using Domain.Abstractions;
 using HotChocolate.Authorization;
 using MediatR;
@@ -211,6 +212,70 @@ public sealed class UserMutations
         }
 
         return ResetPasswordPayload.CreateSuccess(result.Value.Message);
+    }
+
+    /// <summary>
+    /// Changes the password for an authenticated user.
+    /// Requires authentication.
+    /// </summary>
+    [Authorize]
+    public async Task<ChangePasswordPayload> ChangePasswordAsync(
+        ChangePasswordInput input,
+        ClaimsPrincipal claimsPrincipal,
+        [Service] IMediator mediator,
+        CancellationToken cancellationToken)
+    {
+        // Get user ID from claims
+        string? userIdString = claimsPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out Guid userId))
+        {
+            return ChangePasswordPayload.Failure(new UserError("Auth.Unauthorized", "User not authenticated"));
+        }
+
+        var command = new ChangePasswordCommand(userId, input.CurrentPassword, input.NewPassword);
+        Result<ChangePasswordResult, DomainError> result = await mediator.Send(command, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return ChangePasswordPayload.Failure(
+                new UserError(result.Error.Code, result.Error.Message));
+        }
+
+        return ChangePasswordPayload.Success(result.Value.Message);
+    }
+
+    /// <summary>
+    /// Updates the profile information for the currently authenticated user.
+    /// Requires authentication.
+    /// </summary>
+    [Authorize]
+    public async Task<UpdateUserProfilePayload> UpdateMyProfileAsync(
+        UpdateMyProfileInput input,
+        ClaimsPrincipal claimsPrincipal,
+        [Service] IMediator mediator,
+        CancellationToken cancellationToken)
+    {
+        // Get user ID from claims
+        string? userIdString = claimsPrincipal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out Guid userId))
+        {
+            return UpdateUserProfilePayload.Failure(new UserError("Auth.Unauthorized", "User not authenticated"));
+        }
+
+        var command = new UpdateUserProfileCommand(userId, input.FirstName, input.LastName);
+        Result<UpdateUserProfileResult, DomainError> result = await mediator.Send(command, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return UpdateUserProfilePayload.Failure(
+                new UserError(result.Error.Code, result.Error.Message));
+        }
+
+        return UpdateUserProfilePayload.Success(
+            userId,
+            input.FirstName,
+            input.LastName,
+            result.Value.Message);
     }
 
     /// <summary>

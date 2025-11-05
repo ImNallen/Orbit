@@ -31,6 +31,7 @@ public class SessionRepository : ISessionRepository
     {
         DateTime now = DateTime.UtcNow;
         return await _context.Sessions
+            .AsNoTracking()
             .Where(s => s.UserId == userId && !s.IsRevoked && s.ExpiresAt > now)
             .OrderByDescending(s => s.LastAccessedAt)
             .ToListAsync(cancellationToken);
@@ -39,6 +40,7 @@ public class SessionRepository : ISessionRepository
     public async Task<List<Session>> GetAllSessionsByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         return await _context.Sessions
+            .AsNoTracking()
             .Where(s => s.UserId == userId)
             .OrderByDescending(s => s.CreatedAt)
             .ToListAsync(cancellationToken);
@@ -48,6 +50,7 @@ public class SessionRepository : ISessionRepository
     {
         DateTime now = DateTime.UtcNow;
         return await _context.Sessions
+            .AsNoTracking()
             .Where(s => s.ExpiresAt <= now && !s.IsRevoked)
             .ToListAsync(cancellationToken);
     }

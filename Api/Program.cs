@@ -1,5 +1,6 @@
 using System.Text;
 using Api.Authorization;
+using Api.GraphQL.ErrorFilters;
 using Api.GraphQL.Mutations;
 using Api.GraphQL.Queries;
 using Application;
@@ -125,6 +126,24 @@ builder.Services.AddAuthorization(options =>
         policy.Requirements.Add(new PermissionRequirement("products:update")));
     options.AddPolicy("products:delete", policy =>
         policy.Requirements.Add(new PermissionRequirement("products:delete")));
+    
+    options.AddPolicy("locations:create", policy =>
+        policy.Requirements.Add(new PermissionRequirement("locations:create")));
+    options.AddPolicy("locations:read", policy =>
+        policy.Requirements.Add(new PermissionRequirement("locations:read")));
+    options.AddPolicy("locations:update", policy =>
+        policy.Requirements.Add(new PermissionRequirement("locations:update")));
+    options.AddPolicy("locations:delete", policy =>
+        policy.Requirements.Add(new PermissionRequirement("locations:delete")));
+    
+    options.AddPolicy("inventory:create", policy =>
+        policy.Requirements.Add(new PermissionRequirement("inventory:create")));
+    options.AddPolicy("inventory:read", policy =>
+        policy.Requirements.Add(new PermissionRequirement("inventory:read")));
+    options.AddPolicy("inventory:update", policy =>
+        policy.Requirements.Add(new PermissionRequirement("inventory:update")));
+    options.AddPolicy("inventory:delete", policy =>
+        policy.Requirements.Add(new PermissionRequirement("inventory:delete")));
 });
 
 // Register the permission authorization handler
@@ -139,10 +158,15 @@ builder.Services
         .AddTypeExtension<RoleQueries>()
         .AddTypeExtension<CustomerQueries>()
         .AddTypeExtension<ProductQueries>()
+        .AddTypeExtension<LocationQueries>()
+        .AddTypeExtension<InventoryQueries>()
     .AddMutationType(d => d.Name("Mutation"))
         .AddTypeExtension<UserMutations>()
         .AddTypeExtension<CustomerMutations>()
         .AddTypeExtension<ProductMutations>()
+        .AddTypeExtension<LocationMutations>()
+        .AddTypeExtension<InventoryMutations>()
+    .AddErrorFilter<DomainErrorFilter>()
     .AddAuthorization()
     .ModifyRequestOptions(opt => opt.IncludeExceptionDetails = builder.Environment.IsDevelopment());
 

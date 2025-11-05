@@ -42,7 +42,6 @@ public sealed class GetProductBySkuQueryHandler
             product.Description.Value,
             product.Price.Amount,
             product.Sku.Value,
-            product.StockQuantity,
             product.Status.ToString(),
             product.CreatedAt,
             product.UpdatedAt);

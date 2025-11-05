@@ -41,7 +41,6 @@ public sealed class GetProductByIdQueryHandler
             product.Description.Value,
             product.Price.Amount,
             product.Sku.Value,
-            product.StockQuantity,
             product.Status.ToString(),
             product.CreatedAt,
             product.UpdatedAt);

@@ -17,7 +17,6 @@ public sealed record ProductDto(
     string Description,
     decimal Price,
     string Sku,
-    int StockQuantity,
     string Status,
     DateTime CreatedAt,
     DateTime UpdatedAt);

@@ -44,6 +44,7 @@ public class UserRepository : IUserRepository
     public async Task<List<User>> GetAllAsync(int skip = 0, int take = 100, CancellationToken cancellationToken = default)
     {
         return await _context.Users
+            .AsNoTracking()
             .OrderBy(u => u.CreatedAt)
             .Skip(skip)
             .Take(take)
@@ -52,12 +53,15 @@ public class UserRepository : IUserRepository
 
     public async Task<int> GetCountAsync(CancellationToken cancellationToken = default)
     {
-        return await _context.Users.CountAsync(cancellationToken);
+        return await _context.Users
+            .AsNoTracking()
+            .CountAsync(cancellationToken);
     }
 
     public async Task<List<User>> GetByStatusAsync(UserStatus status, CancellationToken cancellationToken = default)
     {
         return await _context.Users
+            .AsNoTracking()
             .Where(u => u.Status == status)
             .ToListAsync(cancellationToken);
     }
@@ -65,6 +69,7 @@ public class UserRepository : IUserRepository
     public async Task<List<User>> GetByRoleIdAsync(Guid roleId, CancellationToken cancellationToken = default)
     {
         return await _context.Users
+            .AsNoTracking()
             .Where(u => u.RoleId == roleId)
             .ToListAsync(cancellationToken);
     }
@@ -72,6 +77,7 @@ public class UserRepository : IUserRepository
     public async Task<bool> ExistsByEmailAsync(Email email, CancellationToken cancellationToken = default)
     {
         return await _context.Users
+            .AsNoTracking()
             .AnyAsync(u => u.Email.Value == email.Value, cancellationToken);
     }
 
@@ -96,6 +102,7 @@ public class UserRepository : IUserRepository
     public async Task<List<PasswordHistory>> GetPasswordHistoryAsync(Guid userId, int limit = 5, CancellationToken cancellationToken = default)
     {
         return await _context.PasswordHistory
+            .AsNoTracking()
             .Where(ph => ph.UserId == userId)
             .OrderByDescending(ph => ph.CreatedAt)
             .Take(limit)

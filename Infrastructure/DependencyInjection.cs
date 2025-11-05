@@ -3,6 +3,8 @@ using System.Net.Mail;
 using Application.Abstractions.Email;
 using Domain.Abstractions;
 using Domain.Customers;
+using Domain.Inventory;
+using Domain.Locations;
 using Domain.Permission;
 using Domain.Products;
 using Domain.Role;
@@ -56,6 +58,8 @@ public static class DependencyInjection
         services.AddScoped<ISessionRepository, SessionRepository>();
         services.AddScoped<ICustomerRepository, CustomerRepository>();
         services.AddScoped<IProductRepository, ProductRepository>();
+        services.AddScoped<ILocationRepository, LocationRepository>();
+        services.AddScoped<IInventoryRepository, InventoryRepository>();
 
         // Services
         services.AddSingleton<IPasswordHasher, PasswordHasher>();

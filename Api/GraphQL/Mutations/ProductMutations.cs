@@ -3,7 +3,6 @@ using Api.GraphQL.Payloads;
 using Api.GraphQL.Types;
 using Application.Products.Commands.CreateProduct;
 using Application.Products.Commands.UpdateProduct;
-using Application.Products.Commands.UpdateProductStock;
 using Application.Products.Commands.ActivateProduct;
 using Application.Products.Commands.DeactivateProduct;
 using Application.Products.Commands.DeleteProduct;
@@ -53,7 +52,6 @@ public sealed class ProductMutations
             Description = input.Description,
             Price = productResult.Price,
             Sku = productResult.Sku,
-            StockQuantity = input.InitialStock ?? 0,
             Status = "Active",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -89,32 +87,8 @@ public sealed class ProductMutations
         return UpdateProductPayload.Success(result.Value.Message);
     }
 
-    /// <summary>
-    /// Updates product stock quantity.
-    /// Requires products:update permission.
-    /// </summary>
-    [Authorize(Policy = "products:update")]
-    public async Task<UpdateProductStockPayload> UpdateProductStockAsync(
-        UpdateProductStockInput input,
-        [Service] IMediator mediator,
-        CancellationToken cancellationToken)
-    {
-        var command = new UpdateProductStockCommand(
-            input.ProductId,
-            input.Quantity);
-
-        Result<UpdateProductStockResult, DomainError> result = await mediator.Send(command, cancellationToken);
-
-        if (result.IsFailure)
-        {
-            return UpdateProductStockPayload.Failure(
-                new ProductError(result.Error.Code, result.Error.Message));
-        }
-
-        return UpdateProductStockPayload.Success(
-            result.Value.Message,
-            result.Value.NewStockQuantity);
-    }
+    // Note: UpdateProductStock mutation has been removed.
+    // Stock is now managed via Inventory aggregate using AdjustStock mutation.
 
     /// <summary>
     /// Activates an inactive product.

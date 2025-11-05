@@ -30,6 +30,7 @@ public class RoleRepository : IRoleRepository
     public async Task<List<Role>> GetByIdsAsync(IEnumerable<Guid> roleIds, CancellationToken cancellationToken = default)
     {
         return await _context.Roles
+            .AsNoTracking()
             .Where(r => roleIds.Contains(r.Id))
             .ToListAsync(cancellationToken);
     }
@@ -37,6 +38,7 @@ public class RoleRepository : IRoleRepository
     public async Task<List<Role>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         return await _context.Roles
+            .AsNoTracking()
             .OrderBy(r => r.Name)
             .ToListAsync(cancellationToken);
     }
@@ -44,6 +46,7 @@ public class RoleRepository : IRoleRepository
     public async Task<List<Role>> GetByPermissionIdAsync(Guid permissionId, CancellationToken cancellationToken = default)
     {
         return await _context.Roles
+            .AsNoTracking()
             .Where(r => r.PermissionIds.Contains(permissionId))
             .ToListAsync(cancellationToken);
     }
@@ -51,6 +54,7 @@ public class RoleRepository : IRoleRepository
     public async Task<bool> ExistsByNameAsync(string name, CancellationToken cancellationToken = default)
     {
         return await _context.Roles
+            .AsNoTracking()
             .AnyAsync(r => r.Name == name, cancellationToken);
     }
 

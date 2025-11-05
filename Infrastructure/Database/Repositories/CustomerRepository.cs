@@ -32,6 +32,7 @@ public class CustomerRepository : ICustomerRepository
     public async Task<List<Customer>> GetAllAsync(int skip = 0, int take = 100, CancellationToken cancellationToken = default)
     {
         return await _context.Customers
+            .AsNoTracking()
             .OrderBy(c => c.CreatedAt)
             .Skip(skip)
             .Take(take)
@@ -40,7 +41,9 @@ public class CustomerRepository : ICustomerRepository
 
     public async Task<int> GetCountAsync(CancellationToken cancellationToken = default)
     {
-        return await _context.Customers.CountAsync(cancellationToken);
+        return await _context.Customers
+            .AsNoTracking()
+            .CountAsync(cancellationToken);
     }
 
     public async Task<(List<Customer> Customers, int TotalCount)> QueryAsync(
@@ -57,7 +60,7 @@ public class CustomerRepository : ICustomerRepository
         int take = 100,
         CancellationToken cancellationToken = default)
     {
-        IQueryable<Customer> query = _context.Customers;
+        IQueryable<Customer> query = _context.Customers.AsNoTracking();
 
         // Apply search filter
         if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -139,6 +142,7 @@ public class CustomerRepository : ICustomerRepository
     public async Task<bool> ExistsByEmailAsync(Email email, CancellationToken cancellationToken = default)
     {
         return await _context.Customers
+            .AsNoTracking()
             .AnyAsync(c => c.Email.Value == email.Value, cancellationToken);
     }
 

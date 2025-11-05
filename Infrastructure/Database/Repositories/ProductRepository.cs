@@ -32,6 +32,7 @@ public class ProductRepository : IProductRepository
     public async Task<List<Product>> GetAllAsync(int skip = 0, int take = 100, CancellationToken cancellationToken = default)
     {
         return await _context.Products
+            .AsNoTracking()
             .OrderBy(p => p.CreatedAt)
             .Skip(skip)
             .Take(take)
@@ -40,7 +41,9 @@ public class ProductRepository : IProductRepository
 
     public async Task<int> GetCountAsync(CancellationToken cancellationToken = default)
     {
-        return await _context.Products.CountAsync(cancellationToken);
+        return await _context.Products
+            .AsNoTracking()
+            .CountAsync(cancellationToken);
     }
 
     public async Task<(List<Product> Products, int TotalCount)> QueryAsync(
@@ -57,7 +60,7 @@ public class ProductRepository : IProductRepository
         int take = 100,
         CancellationToken cancellationToken = default)
     {
-        IQueryable<Product> query = _context.Products;
+        IQueryable<Product> query = _context.Products.AsNoTracking();
 
         // Apply search filter
         if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -85,13 +88,8 @@ public class ProductRepository : IProductRepository
             query = query.Where(p => p.Price <= maxPrice.Value);
         }
 
-        // Apply stock filter
-        if (inStock.HasValue)
-        {
-            query = inStock.Value
-                ? query.Where(p => p.StockQuantity > 0)
-                : query.Where(p => p.StockQuantity == 0);
-        }
+        // Note: Stock filtering is now handled via Inventory aggregate
+        // The inStock parameter is ignored as stock is no longer tracked on Product
 
         // Apply date filters
         if (createdAfter.HasValue)
@@ -119,9 +117,6 @@ public class ProductRepository : IProductRepository
             "SKU" => sortDescending
                 ? query.OrderByDescending(p => p.Sku)
                 : query.OrderBy(p => p.Sku),
-            "STOCK" => sortDescending
-                ? query.OrderByDescending(p => p.StockQuantity)
-                : query.OrderBy(p => p.StockQuantity),
             "CREATEDAT" => sortDescending
                 ? query.OrderByDescending(p => p.CreatedAt)
                 : query.OrderBy(p => p.CreatedAt),
@@ -143,6 +138,7 @@ public class ProductRepository : IProductRepository
     {
         string normalizedSku = sku.ToUpperInvariant();
         return await _context.Products
+            .AsNoTracking()
             .AnyAsync(p => p.Sku == normalizedSku, cancellationToken);
     }
 

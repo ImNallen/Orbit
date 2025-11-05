@@ -30,6 +30,7 @@ public class PermissionRepository : IPermissionRepository
     public async Task<List<Permission>> GetByIdsAsync(IEnumerable<Guid> permissionIds, CancellationToken cancellationToken = default)
     {
         return await _context.Permissions
+            .AsNoTracking()
             .Where(p => permissionIds.Contains(p.Id))
             .ToListAsync(cancellationToken);
     }
@@ -37,6 +38,7 @@ public class PermissionRepository : IPermissionRepository
     public async Task<List<Permission>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         return await _context.Permissions
+            .AsNoTracking()
             .OrderBy(p => p.Resource)
             .ThenBy(p => p.Action)
             .ToListAsync(cancellationToken);
@@ -45,6 +47,7 @@ public class PermissionRepository : IPermissionRepository
     public async Task<List<Permission>> GetByResourceAsync(string resource, CancellationToken cancellationToken = default)
     {
         return await _context.Permissions
+            .AsNoTracking()
             .Where(p => p.Resource == resource)
             .ToListAsync(cancellationToken);
     }
@@ -52,12 +55,14 @@ public class PermissionRepository : IPermissionRepository
     public async Task<Permission?> GetByResourceAndActionAsync(string resource, string action, CancellationToken cancellationToken = default)
     {
         return await _context.Permissions
+            .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Resource == resource && p.Action == action, cancellationToken);
     }
 
     public async Task<bool> ExistsByNameAsync(string name, CancellationToken cancellationToken = default)
     {
         return await _context.Permissions
+            .AsNoTracking()
             .AnyAsync(p => p.Name == name, cancellationToken);
     }
 

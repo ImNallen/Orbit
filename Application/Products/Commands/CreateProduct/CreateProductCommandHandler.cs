@@ -82,18 +82,10 @@ public sealed class CreateProductCommandHandler
 
         Product product = productResult.Value;
 
-        // 4. Set initial stock if provided
-        if (command.InitialStock > 0)
-        {
-            Result<DomainError> stockResult = product.UpdateStock(command.InitialStock);
-            if (stockResult.IsFailure)
-            {
-                _logger.LogWarning("Failed to set initial stock: {Error}", stockResult.Error.Message);
-                return Result<CreateProductResult, DomainError>.Failure(stockResult.Error);
-            }
-        }
+        // Note: Initial stock is now managed via Inventory aggregate
+        // Stock should be set by creating an Inventory record for the product at a location
 
-        // 5. Save product to database
+        // 4. Save product to database
         await _productRepository.AddAsync(product, cancellationToken);
 
         _logger.LogInformation("Successfully created product {ProductId} with SKU {Sku}",
