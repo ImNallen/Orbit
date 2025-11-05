@@ -40,6 +40,18 @@ public static class InventoryErrors
         "Inventory.AccessDenied",
         "You do not have access to this inventory record.");
 
+    public static readonly DomainError NoLocationContextSet = new InventoryError(
+        "Inventory.NoLocationContextSet",
+        "No current location context is set. Please set your working location.");
+
+    public static readonly DomainError NoLocationIdsProvided = new InventoryError(
+        "Inventory.NoLocationIdsProvided",
+        "No location IDs were provided for specific location filtering.");
+
+    public static readonly DomainError InvalidFilterMode = new InventoryError(
+        "Inventory.InvalidFilterMode",
+        "Invalid location filter mode specified.");
+
     // Private error record
     private sealed record InventoryError(string Code, string Message) : DomainError(Code, Message);
 }

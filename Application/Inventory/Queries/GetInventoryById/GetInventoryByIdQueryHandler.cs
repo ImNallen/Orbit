@@ -45,7 +45,6 @@ public sealed class GetInventoryByIdQueryHandler
 
         // 2. Check if user has access to the inventory's location
         IEnumerable<Guid> accessibleLocationIds = await _currentUserService.GetAccessibleLocationIdsAsync(
-            "inventory:read",
             cancellationToken);
 
         if (!accessibleLocationIds.Contains(inventory.LocationId))

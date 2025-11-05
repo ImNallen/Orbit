@@ -1,6 +1,6 @@
 using Domain.Abstractions;
 
-namespace Domain.Users;
+namespace Domain.UserLocations;
 
 /// <summary>
 /// Contains domain errors related to user-location assignments.

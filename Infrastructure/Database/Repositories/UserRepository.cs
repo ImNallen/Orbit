@@ -1,4 +1,6 @@
 using Domain.Shared.ValueObjects;
+using Domain.UserLocations;
+using Domain.UserLocations.Enums;
 using Domain.Users;
 using Domain.Users.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -80,7 +82,7 @@ public class UserRepository : IUserRepository
             .AsNoTracking()
             .Where(u => u.LocationAssignments.Any(a =>
                 a.LocationId == locationId &&
-                a.Status == Domain.Users.Enums.AssignmentStatus.Active))
+                a.Status == AssignmentStatus.Active))
             .ToListAsync(cancellationToken);
     }
 

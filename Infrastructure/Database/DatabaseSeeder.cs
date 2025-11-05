@@ -1,6 +1,5 @@
 using Domain.Abstractions;
 using Domain.Permission;
-using Domain.Permission.Enums;
 using Domain.Role;
 using Domain.Shared.ValueObjects;
 using Domain.Users;
@@ -59,50 +58,50 @@ public class DatabaseSeeder
 
         Permission[] permissions = new[]
         {
-            // User permissions (Global - only HQ can manage users)
-            Permission.Create("users:create", "Create new users", "users", "create", PermissionScope.Global),
-            Permission.Create("users:read", "Read user information", "users", "read", PermissionScope.Global),
-            Permission.Create("users:update", "Update user information", "users", "update", PermissionScope.Global),
-            Permission.Create("users:delete", "Delete users", "users", "delete", PermissionScope.Global),
+            // User permissions
+            Permission.Create("users:create", "Create new users", "users", "create"),
+            Permission.Create("users:read", "Read user information", "users", "read"),
+            Permission.Create("users:update", "Update user information", "users", "update"),
+            Permission.Create("users:delete", "Delete users", "users", "delete"),
 
-            // Role permissions (Global - only HQ can manage roles)
-            Permission.Create("roles:create", "Create new roles", "roles", "create", PermissionScope.Global),
-            Permission.Create("roles:read", "Read role information", "roles", "read", PermissionScope.Global),
-            Permission.Create("roles:update", "Update role information", "roles", "update", PermissionScope.Global),
-            Permission.Create("roles:delete", "Delete roles", "roles", "delete", PermissionScope.Global),
-            Permission.Create("roles:assign", "Assign roles to users", "roles", "assign", PermissionScope.Global),
-            Permission.Create("roles:remove", "Remove roles from users", "roles", "remove", PermissionScope.Global),
+            // Role permissions
+            Permission.Create("roles:create", "Create new roles", "roles", "create"),
+            Permission.Create("roles:read", "Read role information", "roles", "read"),
+            Permission.Create("roles:update", "Update role information", "roles", "update"),
+            Permission.Create("roles:delete", "Delete roles", "roles", "delete"),
+            Permission.Create("roles:assign", "Assign roles to users", "roles", "assign"),
+            Permission.Create("roles:remove", "Remove roles from users", "roles", "remove"),
 
-            // Permission permissions (Global - only HQ can view permissions)
-            Permission.Create("permissions:read", "Read permission information", "permissions", "read", PermissionScope.Global),
+            // Permission permissions
+            Permission.Create("permissions:read", "Read permission information", "permissions", "read"),
 
-            // Session permissions (Global - only HQ can manage all sessions)
-            Permission.Create("sessions:read", "Read session information", "sessions", "read", PermissionScope.Global),
-            Permission.Create("sessions:revoke", "Revoke sessions", "sessions", "revoke", PermissionScope.Global),
+            // Session permissions
+            Permission.Create("sessions:read", "Read session information", "sessions", "read"),
+            Permission.Create("sessions:revoke", "Revoke sessions", "sessions", "revoke"),
 
-            // Location permissions (Global - only HQ can manage locations)
-            Permission.Create("locations:create", "Create new locations", "locations", "create", PermissionScope.Global),
-            Permission.Create("locations:read", "Read location information", "locations", "read", PermissionScope.Global),
-            Permission.Create("locations:update", "Update location information", "locations", "update", PermissionScope.Global),
-            Permission.Create("locations:delete", "Delete locations", "locations", "delete", PermissionScope.Global),
+            // Location permissions
+            Permission.Create("locations:create", "Create new locations", "locations", "create"),
+            Permission.Create("locations:read", "Read location information", "locations", "read"),
+            Permission.Create("locations:update", "Update location information", "locations", "update"),
+            Permission.Create("locations:delete", "Delete locations", "locations", "delete"),
 
-            // Inventory permissions (Assigned - users see inventory for their assigned locations)
-            Permission.Create("inventory:create", "Create inventory records", "inventory", "create", PermissionScope.Assigned),
-            Permission.Create("inventory:read", "Read inventory information", "inventory", "read", PermissionScope.Assigned),
-            Permission.Create("inventory:update", "Update inventory information", "inventory", "update", PermissionScope.Assigned),
-            Permission.Create("inventory:delete", "Delete inventory records", "inventory", "delete", PermissionScope.Assigned),
+            // Inventory permissions
+            Permission.Create("inventory:create", "Create inventory records", "inventory", "create"),
+            Permission.Create("inventory:read", "Read inventory information", "inventory", "read"),
+            Permission.Create("inventory:update", "Update inventory information", "inventory", "update"),
+            Permission.Create("inventory:delete", "Delete inventory records", "inventory", "delete"),
 
-            // Customer permissions (Global - customers are shared across all locations)
-            Permission.Create("customers:create", "Create new customers", "customers", "create", PermissionScope.Global),
-            Permission.Create("customers:read", "Read customer information", "customers", "read", PermissionScope.Global),
-            Permission.Create("customers:update", "Update customer information", "customers", "update", PermissionScope.Global),
-            Permission.Create("customers:delete", "Delete customers", "customers", "delete", PermissionScope.Global),
+            // Customer permissions
+            Permission.Create("customers:create", "Create new customers", "customers", "create"),
+            Permission.Create("customers:read", "Read customer information", "customers", "read"),
+            Permission.Create("customers:update", "Update customer information", "customers", "update"),
+            Permission.Create("customers:delete", "Delete customers", "customers", "delete"),
 
-            // Product permissions (Global - products are shared across all locations)
-            Permission.Create("products:create", "Create new products", "products", "create", PermissionScope.Global),
-            Permission.Create("products:read", "Read product information", "products", "read", PermissionScope.Global),
-            Permission.Create("products:update", "Update product information", "products", "update", PermissionScope.Global),
-            Permission.Create("products:delete", "Delete products", "products", "delete", PermissionScope.Global),
+            // Product permissions
+            Permission.Create("products:create", "Create new products", "products", "create"),
+            Permission.Create("products:read", "Read product information", "products", "read"),
+            Permission.Create("products:update", "Update product information", "products", "update"),
+            Permission.Create("products:delete", "Delete products", "products", "delete"),
         };
 
         await _context.Permissions.AddRangeAsync(permissions);
@@ -134,18 +133,18 @@ public class DatabaseSeeder
                 .Select(p => p.Id)
                 .ToList();
 
-        // 1. HQ Admin Role - Full system access (Global scope)
-        // Can manage everything across all locations
+        // 1. HQ Admin Role - Full system access
+        // Can manage everything. Needs to be assigned to all locations to access all data.
         var hqAdminRole = Role.Create(
             "HQ Admin",
-            "Headquarters administrator with full system access across all locations");
+            "Headquarters administrator with full system access");
         foreach (Guid permissionId in allPermissions.Select(p => p.Id))
         {
             hqAdminRole.AddPermission(permissionId);
         }
 
-        // 2. Store Owner Role - Manages multiple owned locations (Owned scope)
-        // Can manage their owned stores, view all data for owned locations
+        // 2. Store Owner Role - Manages assigned locations
+        // Can manage their assigned stores, view all data for assigned locations
         var storeOwnerRole = Role.Create(
             "Store Owner",
             "Owner of one or more store locations with management capabilities");
@@ -175,11 +174,11 @@ public class DatabaseSeeder
             storeOwnerRole.AddPermission(permissionId);
         }
 
-        // 3. Store Manager Role - Manages one location (Managed scope)
-        // Can manage their assigned store, limited user management
+        // 3. Store Manager Role - Manages assigned locations
+        // Can manage their assigned stores, limited user management
         var storeManagerRole = Role.Create(
             "Store Manager",
-            "Manager of a single store location with operational capabilities");
+            "Manager of store locations with operational capabilities");
         List<Guid> storeManagerPermissions = GetPermissionIds(
             // Location viewing
             "locations:read",
@@ -203,8 +202,8 @@ public class DatabaseSeeder
             storeManagerRole.AddPermission(permissionId);
         }
 
-        // 4. Employee Role - Works at assigned locations (Assigned/Context scope)
-        // Basic operational access, can switch between assigned locations
+        // 4. Employee Role - Works at assigned locations
+        // Basic operational access to assigned locations
         var employeeRole = Role.Create(
             "Employee",
             "Store employee with basic operational access to assigned locations");

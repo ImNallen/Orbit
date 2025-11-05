@@ -39,11 +39,6 @@ public sealed class Location : Entity
     // Location Status
     public LocationStatus Status { get; private set; }
 
-    // Ownership & Management
-    public Guid? OwnerId { get; private set; }
-
-    public Guid? ManagerId { get; private set; }
-
     // Timestamps
     public DateTime CreatedAt { get; private set; }
 
@@ -190,81 +185,5 @@ public sealed class Location : Entity
     /// Checks if the location is operational.
     /// </summary>
     public bool IsOperational() => Status == LocationStatus.Active;
-
-    #region Ownership & Management Methods
-
-    /// <summary>
-    /// Assigns an owner to the location.
-    /// </summary>
-    /// <param name="userId">The user ID of the owner.</param>
-    public void AssignOwner(Guid userId)
-    {
-        OwnerId = userId;
-        UpdatedAt = DateTime.UtcNow;
-
-        Raise(new LocationOwnerAssignedEvent(Id, userId));
-    }
-
-    /// <summary>
-    /// Removes the owner from the location.
-    /// </summary>
-    public void RemoveOwner()
-    {
-        if (OwnerId is null)
-        {
-            return;
-        }
-
-        Guid previousOwnerId = OwnerId.Value;
-        OwnerId = null;
-        UpdatedAt = DateTime.UtcNow;
-
-        Raise(new LocationOwnerRemovedEvent(Id, previousOwnerId));
-    }
-
-    /// <summary>
-    /// Assigns a manager to the location.
-    /// </summary>
-    /// <param name="userId">The user ID of the manager.</param>
-    public void AssignManager(Guid userId)
-    {
-        ManagerId = userId;
-        UpdatedAt = DateTime.UtcNow;
-
-        Raise(new LocationManagerAssignedEvent(Id, userId));
-    }
-
-    /// <summary>
-    /// Removes the manager from the location.
-    /// </summary>
-    public void RemoveManager()
-    {
-        if (ManagerId is null)
-        {
-            return;
-        }
-
-        Guid previousManagerId = ManagerId.Value;
-        ManagerId = null;
-        UpdatedAt = DateTime.UtcNow;
-
-        Raise(new LocationManagerRemovedEvent(Id, previousManagerId));
-    }
-
-    /// <summary>
-    /// Checks if a user owns this location.
-    /// </summary>
-    /// <param name="userId">The user ID to check.</param>
-    /// <returns>True if the user owns this location, false otherwise.</returns>
-    public bool IsOwnedBy(Guid userId) => OwnerId == userId;
-
-    /// <summary>
-    /// Checks if a user manages this location.
-    /// </summary>
-    /// <param name="userId">The user ID to check.</param>
-    /// <returns>True if the user manages this location, false otherwise.</returns>
-    public bool IsManagedBy(Guid userId) => ManagerId == userId;
-
-    #endregion
 }
 

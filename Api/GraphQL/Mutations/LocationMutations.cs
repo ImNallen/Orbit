@@ -4,10 +4,6 @@ using Api.GraphQL.Types;
 using Application.Locations.Commands.CreateLocation;
 using Application.Locations.Commands.UpdateLocation;
 using Application.Locations.Commands.ChangeLocationStatus;
-using Application.Locations.Commands.AssignLocationOwner;
-using Application.Locations.Commands.RemoveLocationOwner;
-using Application.Locations.Commands.AssignLocationManager;
-using Application.Locations.Commands.RemoveLocationManager;
 using Application.Users.Commands.AssignUserToLocation;
 using Application.Users.Commands.UnassignUserFromLocation;
 using Application.Users.Commands.SwitchLocationContext;
@@ -159,7 +155,6 @@ public sealed class LocationMutations
         var command = new AssignUserToLocationCommand(
             input.UserId,
             input.LocationId,
-            input.LocationRoleId,
             input.IsPrimaryLocation);
 
         Result<AssignUserToLocationResult, DomainError> result = await mediator.Send(command, cancellationToken);
@@ -255,100 +250,6 @@ public sealed class LocationMutations
         return SetPrimaryLocationPayload.Success(result.Value.Message);
     }
 
-    /// <summary>
-    /// Assigns an owner to a location.
-    /// Requires locations:update permission.
-    /// </summary>
-    [Authorize(Policy = "locations:update")]
-    public async Task<AssignLocationOwnerPayload> AssignLocationOwnerAsync(
-        AssignLocationOwnerInput input,
-        [Service] IMediator mediator,
-        CancellationToken cancellationToken)
-    {
-        var command = new AssignLocationOwnerCommand(
-            input.LocationId,
-            input.UserId);
 
-        Result<AssignLocationOwnerResult, DomainError> result = await mediator.Send(command, cancellationToken);
-
-        if (result.IsFailure)
-        {
-            return AssignLocationOwnerPayload.Failure(
-                new LocationError(result.Error.Code, result.Error.Message));
-        }
-
-        return AssignLocationOwnerPayload.Success(result.Value.Message);
-    }
-
-    /// <summary>
-    /// Removes the owner from a location.
-    /// Requires locations:update permission.
-    /// </summary>
-    [Authorize(Policy = "locations:update")]
-    public async Task<RemoveLocationOwnerPayload> RemoveLocationOwnerAsync(
-        RemoveLocationOwnerInput input,
-        [Service] IMediator mediator,
-        CancellationToken cancellationToken)
-    {
-        var command = new RemoveLocationOwnerCommand(input.LocationId);
-
-        Result<RemoveLocationOwnerResult, DomainError> result = await mediator.Send(command, cancellationToken);
-
-        if (result.IsFailure)
-        {
-            return RemoveLocationOwnerPayload.Failure(
-                new LocationError(result.Error.Code, result.Error.Message));
-        }
-
-        return RemoveLocationOwnerPayload.Success(result.Value.Message);
-    }
-
-    /// <summary>
-    /// Assigns a manager to a location.
-    /// Requires locations:update permission.
-    /// </summary>
-    [Authorize(Policy = "locations:update")]
-    public async Task<AssignLocationManagerPayload> AssignLocationManagerAsync(
-        AssignLocationManagerInput input,
-        [Service] IMediator mediator,
-        CancellationToken cancellationToken)
-    {
-        var command = new AssignLocationManagerCommand(
-            input.LocationId,
-            input.UserId);
-
-        Result<AssignLocationManagerResult, DomainError> result = await mediator.Send(command, cancellationToken);
-
-        if (result.IsFailure)
-        {
-            return AssignLocationManagerPayload.Failure(
-                new LocationError(result.Error.Code, result.Error.Message));
-        }
-
-        return AssignLocationManagerPayload.Success(result.Value.Message);
-    }
-
-    /// <summary>
-    /// Removes the manager from a location.
-    /// Requires locations:update permission.
-    /// </summary>
-    [Authorize(Policy = "locations:update")]
-    public async Task<RemoveLocationManagerPayload> RemoveLocationManagerAsync(
-        RemoveLocationManagerInput input,
-        [Service] IMediator mediator,
-        CancellationToken cancellationToken)
-    {
-        var command = new RemoveLocationManagerCommand(input.LocationId);
-
-        Result<RemoveLocationManagerResult, DomainError> result = await mediator.Send(command, cancellationToken);
-
-        if (result.IsFailure)
-        {
-            return RemoveLocationManagerPayload.Failure(
-                new LocationError(result.Error.Code, result.Error.Message));
-        }
-
-        return RemoveLocationManagerPayload.Success(result.Value.Message);
-    }
 }
 

@@ -6,6 +6,5 @@ namespace Api.GraphQL.Inputs;
 public sealed record AssignUserToLocationInput(
     Guid UserId,
     Guid LocationId,
-    Guid? LocationRoleId = null,
     bool IsPrimaryLocation = false);
 

@@ -6,6 +6,7 @@ using Domain.Permission;
 using Domain.Products;
 using Domain.Role;
 using Domain.Session;
+using Domain.UserLocations;
 using Domain.Users;
 using MediatR;
 using Microsoft.EntityFrameworkCore;

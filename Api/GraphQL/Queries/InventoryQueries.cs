@@ -49,16 +49,20 @@ public sealed class InventoryQueries
     }
 
     /// <summary>
-    /// Get all inventory for a product across all locations.
+    /// Get inventory for a product.
+    /// By default, returns inventory for the user's current location context.
+    /// Use filterMode to view all assigned locations or specific locations.
     /// Requires inventory:read permission.
     /// </summary>
     [Authorize(Policy = "inventory:read")]
     public async Task<InventoriesPayload> InventoriesByProductAsync(
         Guid productId,
         [Service] IMediator mediator,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        Application.Common.Enums.LocationFilterMode filterMode = Application.Common.Enums.LocationFilterMode.CurrentContext,
+        IEnumerable<Guid>? specificLocationIds = null)
     {
-        var query = new GetInventoryByProductQuery(productId);
+        var query = new GetInventoryByProductQuery(productId, filterMode, specificLocationIds);
         Result<GetInventoryByProductResult, DomainError> result = await mediator.Send(query, cancellationToken);
 
         if (result.IsFailure)
@@ -68,7 +72,8 @@ public sealed class InventoryQueries
                 Inventories = Array.Empty<InventoryType>(),
                 TotalQuantity = 0,
                 TotalReservedQuantity = 0,
-                TotalAvailableQuantity = 0
+                TotalAvailableQuantity = 0,
+                Errors = new[] { new InventoryError(result.Error.Code, result.Error.Message) }
             };
         }
 

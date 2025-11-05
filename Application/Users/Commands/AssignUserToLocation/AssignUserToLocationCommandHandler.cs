@@ -1,5 +1,7 @@
 using Domain.Abstractions;
 using Domain.Locations;
+using Domain.UserLocations;
+using Domain.UserLocations.Enums;
 using Domain.Users;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -52,7 +54,6 @@ public sealed class AssignUserToLocationCommandHandler
         // 3. Assign user to location
         Result<DomainError> assignmentResult = user.AssignToLocation(
             command.LocationId,
-            command.LocationRoleId,
             command.IsPrimaryLocation);
 
         if (assignmentResult.IsFailure)
@@ -64,7 +65,7 @@ public sealed class AssignUserToLocationCommandHandler
 
         // 4. Get the newly created assignment
         UserLocationAssignment? assignment = user.LocationAssignments
-            .FirstOrDefault(a => a.LocationId == command.LocationId && a.Status == Domain.Users.Enums.AssignmentStatus.Active);
+            .FirstOrDefault(a => a.LocationId == command.LocationId && a.Status == AssignmentStatus.Active);
 
         if (assignment is null)
         {

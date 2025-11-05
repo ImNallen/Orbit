@@ -11,5 +11,6 @@ public sealed class InventoriesPayload
     public int TotalQuantity { get; init; }
     public int TotalReservedQuantity { get; init; }
     public int TotalAvailableQuantity { get; init; }
+    public IReadOnlyList<InventoryError> Errors { get; init; } = Array.Empty<InventoryError>();
 }
 

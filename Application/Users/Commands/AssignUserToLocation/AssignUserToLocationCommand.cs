@@ -9,7 +9,6 @@ namespace Application.Users.Commands.AssignUserToLocation;
 public sealed record AssignUserToLocationCommand(
     Guid UserId,
     Guid LocationId,
-    Guid? LocationRoleId = null,
     bool IsPrimaryLocation = false) : IRequest<Result<AssignUserToLocationResult, DomainError>>;
 
 /// <summary>

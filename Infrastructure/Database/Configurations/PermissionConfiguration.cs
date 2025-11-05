@@ -1,5 +1,4 @@
 using Domain.Permission;
-using Domain.Permission.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -38,12 +37,6 @@ public class PermissionConfiguration : IEntityTypeConfiguration<Permission>
         builder.Property(p => p.Action)
             .HasColumnName("action")
             .HasMaxLength(50)
-            .IsRequired();
-
-        builder.Property(p => p.Scope)
-            .HasColumnName("scope")
-            .HasConversion<string>()
-            .HasMaxLength(20)
             .IsRequired();
 
         // Unique index on permission name

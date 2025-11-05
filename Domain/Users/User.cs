@@ -1,6 +1,8 @@
 using Domain.Abstractions;
 using Domain.Role.Events;
 using Domain.Shared.ValueObjects;
+using Domain.UserLocations;
+using Domain.UserLocations.Enums;
 using Domain.Users.Enums;
 using Domain.Users.Events;
 using Domain.Users.ValueObjects;
@@ -382,12 +384,10 @@ public sealed class User : Entity
     /// Assigns the user to a location.
     /// </summary>
     /// <param name="locationId">The location ID.</param>
-    /// <param name="locationRoleId">Optional location-specific role ID.</param>
     /// <param name="isPrimaryLocation">Whether this is the user's primary location.</param>
     /// <returns>Result indicating success or failure.</returns>
     public Result<DomainError> AssignToLocation(
         Guid locationId,
-        Guid? locationRoleId = null,
         bool isPrimaryLocation = false)
     {
         // Check if already assigned to this location
@@ -413,7 +413,6 @@ public sealed class User : Entity
         Result<UserLocationAssignment, DomainError> assignmentResult = UserLocationAssignment.Create(
             Id,
             locationId,
-            locationRoleId,
             isPrimaryLocation);
 
         if (assignmentResult.IsFailure)

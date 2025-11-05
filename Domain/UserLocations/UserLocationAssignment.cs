@@ -1,7 +1,8 @@
 using Domain.Abstractions;
+using Domain.UserLocations.Enums;
 using Domain.Users.Enums;
 
-namespace Domain.Users;
+namespace Domain.UserLocations;
 
 /// <summary>
 /// Represents a user's assignment to a specific location.
@@ -13,13 +14,11 @@ public sealed class UserLocationAssignment : Entity
         Guid id,
         Guid userId,
         Guid locationId,
-        Guid? locationRoleId,
         bool isPrimaryLocation)
         : base(id)
     {
         UserId = userId;
         LocationId = locationId;
-        LocationRoleId = locationRoleId;
         IsPrimaryLocation = isPrimaryLocation;
         Status = AssignmentStatus.Active;
         AssignedDate = DateTime.UtcNow;
@@ -39,12 +38,6 @@ public sealed class UserLocationAssignment : Entity
     /// Gets the location ID.
     /// </summary>
     public Guid LocationId { get; private set; }
-
-    /// <summary>
-    /// Gets the role ID specific to this location (optional).
-    /// If null, the user's global role applies.
-    /// </summary>
-    public Guid? LocationRoleId { get; private set; }
 
     /// <summary>
     /// Gets whether this is the user's primary location.
@@ -82,20 +75,17 @@ public sealed class UserLocationAssignment : Entity
     /// </summary>
     /// <param name="userId">The user ID.</param>
     /// <param name="locationId">The location ID.</param>
-    /// <param name="locationRoleId">Optional location-specific role ID.</param>
     /// <param name="isPrimaryLocation">Whether this is the user's primary location.</param>
     /// <returns>Result containing the assignment or an error.</returns>
     public static Result<UserLocationAssignment, DomainError> Create(
         Guid userId,
         Guid locationId,
-        Guid? locationRoleId = null,
         bool isPrimaryLocation = false)
     {
         var assignment = new UserLocationAssignment(
             Guid.CreateVersion7(),
             userId,
             locationId,
-            locationRoleId,
             isPrimaryLocation);
 
         return Result<UserLocationAssignment, DomainError>.Success(assignment);
@@ -121,16 +111,6 @@ public sealed class UserLocationAssignment : Entity
     public void RemoveAsPrimary()
     {
         IsPrimaryLocation = false;
-        UpdatedAt = DateTime.UtcNow;
-    }
-
-    /// <summary>
-    /// Updates the location-specific role.
-    /// </summary>
-    /// <param name="roleId">The new role ID (null to use global role).</param>
-    public void UpdateLocationRole(Guid? roleId)
-    {
-        LocationRoleId = roleId;
         UpdatedAt = DateTime.UtcNow;
     }
 

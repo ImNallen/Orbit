@@ -1,3 +1,4 @@
+using Domain.UserLocations;
 using Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -38,11 +39,6 @@ public class UserLocationAssignmentConfiguration : IEntityTypeConfiguration<User
         // Composite index for user-location uniqueness (active assignments)
         builder.HasIndex(ula => new { ula.UserId, ula.LocationId })
             .HasDatabaseName("ix_user_location_assignments_user_location");
-
-        // Location Role ID - optional foreign key
-        builder.Property(ula => ula.LocationRoleId)
-            .HasColumnName("location_role_id")
-            .IsRequired(false);
 
         // Is Primary Location
         builder.Property(ula => ula.IsPrimaryLocation)

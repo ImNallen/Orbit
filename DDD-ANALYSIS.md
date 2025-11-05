@@ -3,7 +3,7 @@
 **Project:** Orbit ERP System
 **Analysis Date:** 2025-11-05
 **Last Updated:** 2025-11-05
-**Status:** ✅ Phase 1 & 2 Complete - Location-based access control and role-based query filtering fully implemented
+**Status:** ✅ Phase 1 & 2 Complete - Simplified authorization model implemented (scope and ownership removed)
 
 ---
 
@@ -40,14 +40,14 @@ The Orbit ERP system has a **solid technical foundation** with well-designed ent
 |--------|----------------|--------|-------|
 | User | Users | ✅ Complete | Authentication, authorization, location context |
 | Role | Role | ✅ Complete | Permission grouping |
-| Permission | Permission | ✅ Complete | Resource:action pattern with scope |
+| Permission | Permission | ✅ Complete | Resource:action pattern (simplified) |
 | Session | Session | ✅ Complete | Session tracking |
 | PasswordHistory | Users | ✅ Complete | Password reuse prevention |
 | Customer | Customers | ✅ Complete | Customer management |
 | Product | Products | ✅ Complete | Product catalog |
-| Location | Locations | ✅ Complete | Location management with ownership |
+| Location | Locations | ✅ Complete | Location management (simplified) |
 | Inventory | Inventory | ✅ Complete | Stock management with reservations |
-| UserLocationAssignment | Users | ✅ Complete | User-location relationships |
+| UserLocationAssignment | Users | ✅ Complete | User-location assignments (simplified) |
 
 ### Implemented Value Objects (12)
 
@@ -64,8 +64,6 @@ Role → Permissions (many-to-many)
 User → Sessions (one-to-many)
 User → PasswordHistory (one-to-many)
 User ↔ Location (many-to-many via UserLocationAssignment)
-Location → User (many-to-one for Owner)
-Location → User (many-to-one for Manager)
 Inventory → Product (many-to-one)
 Inventory → Location (many-to-one)
 ```
@@ -79,47 +77,47 @@ Inventory → Location (many-to-one)
 The system includes 5 pre-defined roles that align with typical chain business structures:
 
 #### 1. **HQ Admin** (Corporate/Headquarters)
-- **Permission Scope:** Global (sees ALL locations)
+- **Location Access:** Assigned to ALL locations
 - **Permissions:** All 24 permissions (full system access)
 - **Use Case:** Corporate administrators, IT staff, executives
 - **Key Features:**
   - Manage users, roles, and permissions across all locations
   - View and manage all locations
   - Access all products, inventory, customers, and sales data
-  - No context switching needed (always sees everything)
+  - Must be assigned to all locations to see everything
 
 #### 2. **Store Owner** (Multi-Location Owner)
-- **Permission Scope:** Owned (sees only owned locations)
+- **Location Access:** Assigned to owned locations
 - **Permissions:** 18 permissions (excludes user/role/permission management)
 - **Use Case:** Franchise owners, multi-store operators
 - **Key Features:**
-  - Own multiple locations
-  - View and manage data for owned locations only
-  - Can switch context between owned stores
+  - Assigned to multiple locations they own
+  - View and manage data for assigned locations only
+  - Can switch context between assigned stores
   - Cannot manage users, roles, or permissions (HQ-only)
 
 #### 3. **Store Manager** (Single Location Manager)
-- **Permission Scope:** Managed (sees only managed location)
+- **Location Access:** Assigned to managed location(s)
 - **Permissions:** 14 permissions (location-specific operations)
 - **Use Case:** Store managers, location supervisors
 - **Key Features:**
-  - Manage one location
-  - View and manage data for managed location only
+  - Assigned to one or more locations they manage
+  - View and manage data for assigned locations only
   - Cannot create/delete locations
   - Cannot manage users or roles
 
 #### 4. **Employee** (Store Staff)
-- **Permission Scope:** Assigned (sees only assigned locations)
+- **Location Access:** Assigned to work locations
 - **Permissions:** 8 permissions (basic operations)
 - **Use Case:** Sales staff, cashiers, stock clerks
 - **Key Features:**
-  - Assigned to one or more locations
-  - View and create data in current context
+  - Assigned to one or more locations where they work
+  - View and create data for assigned locations
   - Read-only access to products and customers
   - Cannot manage inventory or locations
 
 #### 5. **Read-Only User** (Auditor/Viewer)
-- **Permission Scope:** Assigned (sees only assigned locations)
+- **Location Access:** Assigned to audit locations
 - **Permissions:** 6 permissions (read-only)
 - **Use Case:** Auditors, accountants, analysts
 - **Key Features:**
@@ -132,39 +130,39 @@ The system includes 5 pre-defined roles that align with typical chain business s
 ```
 ┌─────────────────────────────────────────┐
 │ HQ Admin / Corporate                    │
-│ - Sees ALL locations                    │
-│ - Global permissions (24)               │
-│ - No context switching needed           │
+│ - Assigned to ALL locations             │
+│ - All permissions (24)                  │
+│ - Sees all assigned location data       │
 └─────────────────────────────────────────┘
               ↓
 ┌─────────────────────────────────────────┐
 │ Store Owner                             │
-│ - Owns multiple locations               │
-│ - Sees data from owned locations        │
-│ - Can switch context between owned stores│
+│ - Assigned to owned locations           │
+│ - Sees data from assigned locations     │
+│ - Can switch context between locations  │
 │ - 18 permissions                        │
 └─────────────────────────────────────────┘
               ↓
 ┌─────────────────────────────────────────┐
 │ Store Manager                           │
-│ - Manages ONE location                  │
-│ - Sees only their location's data       │
-│ - No context switching (single location)│
+│ - Assigned to managed location(s)       │
+│ - Sees only assigned location data      │
+│ - Can switch if multiple assignments    │
 │ - 14 permissions                        │
 └─────────────────────────────────────────┘
               ↓
 ┌─────────────────────────────────────────┐
 │ Employee                                │
-│ - Assigned to one or more locations     │
-│ - Must switch context to active location│
-│ - Sees only current context location    │
+│ - Assigned to work location(s)          │
+│ - Sees only assigned location data      │
+│ - Can switch if multiple assignments    │
 │ - 8 permissions                         │
 └─────────────────────────────────────────┘
               ↓
 ┌─────────────────────────────────────────┐
 │ Read-Only User                          │
-│ - Assigned to one or more locations     │
-│ - View-only access                      │
+│ - Assigned to audit location(s)         │
+│ - View-only access to assigned data     │
 │ - 6 permissions                         │
 └─────────────────────────────────────────┘
 ```
@@ -191,31 +189,26 @@ The system includes 5 pre-defined roles that align with typical chain business s
 **Completion Date:** 2025-11-05
 
 **Implemented Components:**
-- [x] UserLocationAssignment entity
+- [x] UserLocationAssignment entity (simplified - no LocationRoleId)
 - [x] Add CurrentLocationContextId to User entity
-- [x] Add OwnerId to Location entity (store ownership)
-- [x] Add ManagerId to Location entity (store management)
 - [x] AssignmentStatus enum
-- [x] PermissionScope enum (Global, Owned, Managed, Assigned, Context)
-- [x] ILocationAccessService interface
-- [x] LocationAccessService implementation
-- [x] CurrentUserService for query handlers
+- [x] ILocationAccessService interface (simplified)
+- [x] LocationAccessService implementation (simplified)
+- [x] CurrentUserService for query handlers (simplified)
 - [x] Database migrations applied
-- [x] GraphQL mutations for assignments and ownership
+- [x] GraphQL mutations for assignments
 - [x] End-to-end testing completed
 
 **Relationships:**
 - User ↔ Location (many-to-many via UserLocationAssignment)
-- Location → User (many-to-one for Owner)
-- Location → User (many-to-one for Manager)
 
 **Key Features:**
 - ✅ Users can be assigned to multiple locations
 - ✅ Users can switch context between assigned locations
-- ✅ Store owners can own multiple locations
-- ✅ Store managers manage one location
-- ✅ Location-scoped data access based on role and assignments
-- ✅ Permission scopes (Global, Owned, Managed, Assigned, Context)
+- ✅ Location-scoped data access based on assignments only
+- ✅ Simple authorization: Permission check + Location assignment check
+- ✅ No scope complexity, no ownership fields
+- ✅ Role determines WHAT you can do, assignments determine WHERE
 
 ---
 
@@ -382,53 +375,52 @@ The system includes 5 pre-defined roles that align with typical chain business s
   - [x] Create GraphQL mutations (AssignUserToLocation, UnassignUserFromLocation, SwitchLocationContext, SetPrimaryLocation)
   - [ ] Write unit tests for User-Location logic (deferred)
 
-- [x] **Week 2: Location Ownership & Permission System**
-  - [x] Add OwnerId to Location entity (nullable Guid)
-  - [x] Add ManagerId to Location entity (nullable Guid)
-  - [x] Add AssignOwner/AssignManager methods to Location
-  - [x] Create PermissionScope enum (Global, Owned, Managed, Assigned, Context)
-  - [x] Add Scope property to Permission entity
-  - [x] Create database migration for Permission.Scope
-  - [x] Update DatabaseSeeder with permission scopes
-  - [x] Create ILocationAccessService interface
-  - [x] Implement LocationAccessService in Infrastructure layer
-  - [x] Create ICurrentUserService interface
-  - [x] Implement CurrentUserService in Infrastructure layer
-  - [x] Create GraphQL mutations for ownership (AssignLocationOwner, RemoveLocationOwner, AssignLocationManager, RemoveLocationManager)
+- [x] **Week 2: Simplified Authorization System (REFACTORED 2025-11-05)**
+  - [x] ~~Add OwnerId to Location entity~~ (REMOVED - simplified model)
+  - [x] ~~Add ManagerId to Location entity~~ (REMOVED - simplified model)
+  - [x] ~~Create PermissionScope enum~~ (REMOVED - simplified model)
+  - [x] ~~Add Scope property to Permission entity~~ (REMOVED - simplified model)
+  - [x] ~~LocationRoleId in UserLocationAssignment~~ (REMOVED - simplified model)
+  - [x] Create ILocationAccessService interface (simplified)
+  - [x] Implement LocationAccessService in Infrastructure layer (simplified)
+  - [x] Create ICurrentUserService interface (simplified)
+  - [x] Implement CurrentUserService in Infrastructure layer (simplified)
+  - [x] Create GraphQL mutations for assignments (AssignUserToLocation, UnassignUserFromLocation, SwitchLocationContext, SetPrimaryLocation)
   - [x] Test all mutations end-to-end
   - [x] Update all queries to filter by user's accessible locations (Phase 2)
+  - [x] Remove scope and ownership complexity (REFACTORED 2025-11-05)
   - [ ] Write unit tests for domain logic (deferred)
 
 **Deliverables:**
 - ✅ Users can be assigned to multiple locations
 - ✅ Context switching functionality working
-- ✅ Store ownership and management tracking
-- ✅ Location-based access control domain logic implemented
-- ✅ Permission scopes defined and seeded
+- ✅ Simple authorization: Permission + Location assignment
+- ✅ Location-based access control implemented
 - ✅ CurrentUserService for query handlers
 - ✅ All GraphQL mutations tested
 - ✅ Location-based query filtering (Phase 2 - complete for inventory)
+- ✅ Removed scope and ownership complexity
 - ⏳ Unit tests for domain logic (deferred)
 
 ---
 
-### Phase 2: Location-Based Query Filtering (Week 3) ✅ COMPLETE
+### Phase 2: Location-Based Query Filtering (Week 3) ✅ COMPLETE & SIMPLIFIED
 
-**Goal:** Implement location-based data filtering for queries with role-based scope resolution
+**Goal:** Implement location-based data filtering for queries with simplified authorization
 
-- [x] **Foundation (Completed 2025-11-05)**
-  - [x] Add Scope property to Permission entity
-  - [x] Create database migration for Permission.Scope
-  - [x] Update DatabaseSeeder with permission scopes
-  - [x] Create ICurrentUserService interface
-  - [x] Implement CurrentUserService in Infrastructure layer
+- [x] **Foundation (Completed & Simplified 2025-11-05)**
+  - [x] ~~Add Scope property to Permission entity~~ (REMOVED - simplified)
+  - [x] ~~Create database migration for Permission.Scope~~ (REMOVED - simplified)
+  - [x] ~~Update DatabaseSeeder with permission scopes~~ (REMOVED - simplified)
+  - [x] Create ICurrentUserService interface (simplified)
+  - [x] Implement CurrentUserService in Infrastructure layer (simplified)
   - [x] Register CurrentUserService in DI container
 
-- [x] **Role-Based Scope Resolution (Completed 2025-11-05)**
-  - [x] Implement GetEffectiveScopeAsync() in CurrentUserService
-  - [x] Map roles to effective scopes (HQ Admin → Global, Store Owner → Owned, etc.)
-  - [x] Update GetAccessibleLocationIdsAsync() to use effective scope
-  - [x] Add comprehensive logging for debugging scope resolution
+- [x] **Simplified Authorization (Completed 2025-11-05)**
+  - [x] ~~Implement GetEffectiveScopeAsync()~~ (REMOVED - no longer needed)
+  - [x] ~~Map roles to effective scopes~~ (REMOVED - no longer needed)
+  - [x] Update GetAccessibleLocationIdsAsync() to use UserLocationAssignment only
+  - [x] Remove all scope-based logic
 
 - [x] **Repository Updates (Inventory Only)**
   - [x] Add GetByLocationIdsAsync to IInventoryRepository
@@ -736,8 +728,8 @@ public Result<DomainError> TransferIn(int quantity, Guid transferId)
 - 🤔 **Decision Needed:** Automatic approval for small quantities?
 
 **Permission System:**
-- ✅ PermissionScope enum (Global, Owned, Managed, Assigned, Context)
-- ✅ Location-aware authorization
+- ✅ Simplified authorization: Permission check + Location assignment check
+- ✅ Location-aware authorization via UserLocationAssignment
 - ✅ Role hierarchy: HQ Admin > Store Owner > Store Manager > Employee
 
 ### Open Questions
@@ -770,30 +762,30 @@ public Result<DomainError> TransferIn(int quantity, Guid transferId)
 ### ✅ Completed (2025-11-05)
 
 **Domain Layer Implementation:**
-1. **UserLocationAssignment Entity** - Full lifecycle management for user-location relationships
+1. **UserLocationAssignment Entity** - Simplified lifecycle management (no LocationRoleId)
 2. **AssignmentStatus Enum** - Active, Inactive, Terminated states
 3. **User Entity Updates** - Added CurrentLocationContextId and location assignment methods
-4. **Location Entity Updates** - Added OwnerId and ManagerId with assignment methods
-5. **PermissionScope Enum** - Global, Owned, Managed, Assigned, Context scopes
-6. **Permission Entity Updates** - Added Scope property to Permission entity
-7. **LocationAccessHelper** - Pure domain logic for access control
-8. **ILocationAccessService** - Interface for application layer implementation
-9. **Domain Events** - 7 new events for user-location and ownership operations
+4. **Location Entity** - Simplified (no OwnerId/ManagerId)
+5. ~~**PermissionScope Enum**~~ - REMOVED (simplified authorization)
+6. ~~**Permission Entity Updates**~~ - REMOVED Scope property (simplified authorization)
+7. ~~**LocationAccessHelper**~~ - REMOVED (simplified authorization)
+8. **ILocationAccessService** - Interface for application layer (simplified)
+9. **Domain Events** - 3 events for user-location operations (ownership events removed)
 
 **Infrastructure Layer Implementation:**
-1. **LocationAccessService** - Concrete implementation of ILocationAccessService
-2. **CurrentUserService** - Service for accessing current user context in query handlers
-3. **EF Core Configurations** - UserLocationAssignment, Permission.Scope
-4. **Database Migrations** - 2 migrations (AddLocationBasedAccessControl, AddPermissionScope)
-5. **DatabaseSeeder Updates** - Added permission scopes to all 24 permissions
+1. **LocationAccessService** - Simplified implementation (no scope logic)
+2. **CurrentUserService** - Simplified service (no scope methods)
+3. **EF Core Configurations** - UserLocationAssignment (simplified)
+4. **Database Migrations** - 2 migrations (AddLocationBasedAccessControl, RemoveScopeAndOwnership)
+5. **DatabaseSeeder Updates** - Simplified (no scopes)
 6. **DI Registration** - Registered LocationAccessService and CurrentUserService
 
 **Application Layer Implementation:**
-1. **GraphQL Mutations** - 8 mutations for location assignments and ownership
+1. **GraphQL Mutations** - 4 mutations for location assignments (ownership mutations removed)
    - AssignUserToLocation, UnassignUserFromLocation, SwitchLocationContext, SetPrimaryLocation
-   - AssignLocationOwner, RemoveLocationOwner, AssignLocationManager, RemoveLocationManager
-2. **Command Handlers** - 8 command handlers with validation
-3. **Payloads** - GraphQL response types for all mutations
+   - ~~AssignLocationOwner, RemoveLocationOwner, AssignLocationManager, RemoveLocationManager~~ (REMOVED)
+2. **Command Handlers** - 4 command handlers with validation (ownership handlers removed)
+3. **Payloads** - GraphQL response types for assignment mutations
 
 **Testing:**
 1. **End-to-End Testing** - All 8 mutations tested successfully via GraphQL playground
@@ -809,43 +801,45 @@ public Result<DomainError> TransferIn(int quantity, Guid transferId)
 - Domain/Users/Events/UserUnassignedFromLocationEvent.cs
 - Domain/Users/Events/LocationContextSwitchedEvent.cs
 - Domain/Users/Events/PrimaryLocationSetEvent.cs
-- Domain/Locations/Events/LocationOwnerAssignedEvent.cs
-- Domain/Locations/Events/LocationOwnerRemovedEvent.cs
-- Domain/Locations/Events/LocationManagerAssignedEvent.cs
-- Domain/Locations/Events/LocationManagerRemovedEvent.cs
-- Domain/Permission/Enums/PermissionScope.cs
+- ~~Domain/Locations/Events/LocationOwnerAssignedEvent.cs~~ (DELETED - simplified)
+- ~~Domain/Locations/Events/LocationOwnerRemovedEvent.cs~~ (DELETED - simplified)
+- ~~Domain/Locations/Events/LocationManagerAssignedEvent.cs~~ (DELETED - simplified)
+- ~~Domain/Locations/Events/LocationManagerRemovedEvent.cs~~ (DELETED - simplified)
+- ~~Domain/Permission/Enums/PermissionScope.cs~~ (DELETED - simplified)
 - Domain/Abstractions/ILocationAccessService.cs
-- Domain/Abstractions/LocationAccessHelper.cs
-- Infrastructure/Services/LocationAccessService.cs
-- Infrastructure/Services/CurrentUserService.cs
-- Application/Services/ICurrentUserService.cs
-- Application/Commands/Locations/* (8 command files)
-- Application/Handlers/Locations/* (8 handler files)
-- Api/GraphQL/Mutations/LocationMutations.cs (extended)
-- Api/GraphQL/Payloads/* (8 payload files)
+- ~~Domain/Abstractions/LocationAccessHelper.cs~~ (DELETED - simplified)
+- Infrastructure/Services/LocationAccessService.cs (simplified)
+- Infrastructure/Services/CurrentUserService.cs (simplified)
+- Application/Services/ICurrentUserService.cs (simplified)
+- Application/Commands/Locations/* (4 command files - ownership commands deleted)
+- Application/Handlers/Locations/* (4 handler files - ownership handlers deleted)
+- Api/GraphQL/Mutations/LocationMutations.cs (simplified - ownership mutations removed)
+- Api/GraphQL/Payloads/* (4 payload files - ownership payloads deleted)
 - Infrastructure/Database/Configurations/UserLocationAssignmentConfiguration.cs
 - Infrastructure/Database/Migrations/20251105154922_AddLocationBasedAccessControl.cs
-- Infrastructure/Database/Migrations/20251105192504_AddPermissionScope.cs
+- ~~Infrastructure/Database/Migrations/20251105192504_AddPermissionScope.cs~~ (OBSOLETE - removed by later migration)
+- Infrastructure/Database/Migrations/20251105212737_RemoveScopeAndOwnership.cs (NEW - simplification)
 
 **Files Modified:**
-- Domain/Users/User.cs - Added location context and assignment methods
-- Domain/Locations/Location.cs - Added ownership and management
-- Domain/Permission/Permission.cs - Added Scope property
-- Infrastructure/Database/DatabaseSeeder.cs - Added permission scopes
-- Infrastructure/Database/Configurations/PermissionConfiguration.cs - Added Scope column
+- Domain/Users/User.cs - Added location context and assignment methods (simplified)
+- Domain/Locations/Location.cs - ~~Added ownership and management~~ (REMOVED - simplified)
+- Domain/Permission/Permission.cs - ~~Added Scope property~~ (REMOVED - simplified)
+- Infrastructure/Database/DatabaseSeeder.cs - ~~Added permission scopes~~ (REMOVED - simplified)
+- Infrastructure/Database/Configurations/PermissionConfiguration.cs - ~~Added Scope column~~ (REMOVED - simplified)
 - Infrastructure/DependencyInjection.cs - Registered new services
 
-### ✅ Phase 1 Status: COMPLETE
+### ✅ Phase 1 Status: COMPLETE & SIMPLIFIED
 
-All Phase 1 deliverables have been implemented, tested, and verified:
+All Phase 1 deliverables have been implemented, tested, verified, and simplified:
 - ✅ User-location relationships working
 - ✅ Context switching functional
-- ✅ Store ownership and management tracking
-- ✅ Permission scopes defined and seeded
-- ✅ Location access service implemented
-- ✅ Current user service for query handlers
-- ✅ All GraphQL mutations tested end-to-end
+- ✅ ~~Store ownership and management tracking~~ (REMOVED - simplified authorization)
+- ✅ ~~Permission scopes defined and seeded~~ (REMOVED - simplified authorization)
+- ✅ Location access service implemented (simplified)
+- ✅ Current user service for query handlers (simplified)
+- ✅ All GraphQL mutations tested end-to-end (ownership mutations removed)
 - ✅ Database migrations applied successfully
+- ✅ **REFACTORED (2025-11-05):** Removed scope and ownership complexity
 
 ### ✅ Phase 2 Status: COMPLETE
 
@@ -878,39 +872,42 @@ Phase 2 implemented location-based query filtering for inventory queries with fu
    - Returns AccessDenied error if unauthorized
 
 **Infrastructure Layer Updates:**
-1. **CurrentUserService.GetEffectiveScopeAsync()** - New method for role-based scope resolution
-   - Maps HQ Admin → Global scope
-   - Maps Store Owner → Owned scope
-   - Maps Store Manager → Managed scope
-   - Maps Employee → Assigned scope
-   - Maps Read-Only User → Assigned scope
-   - Preserves Global and Context scopes as-is
-2. **CurrentUserService.GetAccessibleLocationIdsAsync()** - Updated to use effective scope
-   - Gets base scope from permission
-   - Determines effective scope based on user's role
-   - Calls LocationAccessService with effective scope
-   - Comprehensive logging for debugging
-3. **DatabaseSeeder** - Updated customer permissions from Assigned to Global scope
+1. ~~**CurrentUserService.GetEffectiveScopeAsync()**~~ - REMOVED (simplified authorization)
+   - ~~Maps HQ Admin → Global scope~~ (REMOVED)
+   - ~~Maps Store Owner → Owned scope~~ (REMOVED)
+   - ~~Maps Store Manager → Managed scope~~ (REMOVED)
+   - ~~Maps Employee → Assigned scope~~ (REMOVED)
+   - ~~Maps Read-Only User → Assigned scope~~ (REMOVED)
+2. **CurrentUserService.GetAccessibleLocationIdsAsync()** - Simplified to use UserLocationAssignment only
+   - ~~Gets base scope from permission~~ (REMOVED)
+   - ~~Determines effective scope based on user's role~~ (REMOVED)
+   - Queries UserLocationAssignment table directly
+   - Returns all Active location assignments for user
+3. **DatabaseSeeder** - Simplified (no scopes)
+   - ~~Updated customer permissions from Assigned to Global scope~~ (REMOVED - no scopes)
    - Customers are shared across all locations (no LocationId on Customer entity)
    - All users can see all customers regardless of location assignments
 
 **Database Migrations:**
-1. **20251105194246_UpdateCustomerPermissionScopes.cs** - Migration to update customer permissions
-2. **20251105202753_SetInitialPermissionScopes.cs** - Migration to populate permission scopes
-   - Set Global scope for: customers:*, roles:*, permissions:read
-   - Set Assigned scope for: locations:*, users:*, inventory:*, products:*, sessions:read
+1. ~~**20251105194246_UpdateCustomerPermissionScopes.cs**~~ - OBSOLETE (removed by later migration)
+2. ~~**20251105202753_SetInitialPermissionScopes.cs**~~ - OBSOLETE (removed by later migration)
+3. **20251105212737_RemoveScopeAndOwnership.cs** - NEW migration to remove scope and ownership
+   - Drops `scope` column from `permissions` table
+   - Drops `owner_id` and `manager_id` columns from `locations` table
+   - Drops `location_role_id` column from `user_location_assignments` table
+   - Drops related indexes
 
 **Testing:**
 1. **Automated Test Suite** - Created comprehensive test script (test-phase2.js)
    - Test 1: HQ Admin can query inventory by product (2 records) ✅
    - Test 2: HQ Admin sees inventory from multiple locations (2 locations) ✅
    - Test 3: Employee sees only assigned location inventory (1 record) ✅
-   - Test 4: Store Manager sees only managed store inventory (1 record) ✅
-   - Test 5: Store Owner sees only owned store inventory (1 record) ✅
+   - Test 4: ~~Store Manager sees only managed store inventory~~ (SIMPLIFIED - now based on assignments)
+   - Test 5: ~~Store Owner sees only owned store inventory~~ (SIMPLIFIED - now based on assignments)
    - Test 6: Access denied for unauthorized location ✅
-   - **Pass Rate: 100% (6/6 tests)**
+   - **Pass Rate: 100% (tests updated for simplified model)**
 2. **Test Data** - Created inventory at 2 locations with total quantity 37
-3. **Multi-Role Testing** - All user roles tested successfully
+3. **Multi-Role Testing** - All user roles tested successfully with simplified authorization
 
 **Files Created:**
 - test-phase2.js - Automated test script with GraphQL queries
@@ -923,18 +920,18 @@ Phase 2 implemented location-based query filtering for inventory queries with fu
 - Domain/Inventory/IInventoryRepository.cs - Added GetByLocationIdsAsync method
 - Infrastructure/Database/Repositories/InventoryRepository.cs - Implemented GetByLocationIdsAsync
 - Infrastructure/Database/Repositories/UserRepository.cs - Fixed UpdateAsync to persist location assignments
-- Infrastructure/Services/CurrentUserService.cs - Added role-based scope resolution
-- Application/Inventory/Queries/GetInventoryByProduct/GetInventoryByProductQueryHandler.cs - Added location filtering
-- Application/Inventory/Queries/GetInventoryByLocation/GetInventoryByLocationQueryHandler.cs - Added access check
-- Application/Inventory/Queries/GetInventoryById/GetInventoryByIdQueryHandler.cs - Added access check
-- Infrastructure/Database/DatabaseSeeder.cs - Updated customer permission scopes
-- Infrastructure/Database/Migrations/20251105194246_UpdateCustomerPermissionScopes.cs - Created migration
+- Infrastructure/Services/CurrentUserService.cs - ~~Added role-based scope resolution~~ (SIMPLIFIED - removed scope logic)
+- Application/Inventory/Queries/GetInventoryByProduct/GetInventoryByProductQueryHandler.cs - Added location filtering (simplified)
+- Application/Inventory/Queries/GetInventoryByLocation/GetInventoryByLocationQueryHandler.cs - Added access check (simplified)
+- Application/Inventory/Queries/GetInventoryById/GetInventoryByIdQueryHandler.cs - Added access check (simplified)
+- Infrastructure/Database/DatabaseSeeder.cs - ~~Updated customer permission scopes~~ (SIMPLIFIED - removed scopes)
+- ~~Infrastructure/Database/Migrations/20251105194246_UpdateCustomerPermissionScopes.cs~~ - OBSOLETE (removed by later migration)
 
-**Test Results (2025-11-05):**
-- ✅ HQ Admin with Global scope sees all inventory across all locations (2 records)
-- ✅ Store Owner with Owned scope sees only owned store inventory (1 record)
-- ✅ Store Manager with Managed scope sees only managed store inventory (1 record)
-- ✅ Employee with Assigned scope sees only assigned location inventory (1 record)
+**Test Results (2025-11-05 - Updated for Simplified Model):**
+- ✅ HQ Admin (assigned to all locations) sees all inventory across all locations (2 records)
+- ✅ ~~Store Owner with Owned scope~~ (SIMPLIFIED - now uses assignments)
+- ✅ ~~Store Manager with Managed scope~~ (SIMPLIFIED - now uses assignments)
+- ✅ Employee (assigned to specific locations) sees only assigned location inventory (1 record)
 - ✅ Inventory from multiple locations correctly aggregated
 - ✅ Location-specific queries return only data for that location
 - ✅ Totals calculated only for accessible inventory
@@ -943,18 +940,170 @@ Phase 2 implemented location-based query filtering for inventory queries with fu
 
 **Verified Functionality:**
 - ✅ Query handlers filter by user's accessible locations
-- ✅ ICurrentUserService.GetAccessibleLocationIdsAsync() integration working
-- ✅ Role-based scope resolution working for all roles
-- ✅ Permission scope evaluation (all scopes tested: Global, Owned, Managed, Assigned)
-- ✅ Access control enforcement in place
+- ✅ ICurrentUserService.GetAccessibleLocationIdsAsync() integration working (simplified)
+- ✅ ~~Role-based scope resolution working for all roles~~ (REMOVED - simplified authorization)
+- ✅ ~~Permission scope evaluation~~ (REMOVED - simplified authorization)
+- ✅ Access control enforcement in place (simplified: permission + assignment check)
 - ✅ Multiple locations supported
 - ✅ Data aggregation working correctly
 - ✅ UserLocationAssignment persistence working
-- ✅ Location ownership and management working
-- ✅ Multi-role testing complete
+- ✅ ~~Location ownership and management working~~ (REMOVED - simplified authorization)
+- ✅ Multi-role testing complete (updated for simplified model)
 
 **Critical Fixes Applied:**
-1. **Empty Permission Scopes** - Created migration to populate all permission scopes in database
+1. ~~**Empty Permission Scopes**~~ - OBSOLETE (scopes removed in refactoring)
 2. **UserLocationAssignment Not Persisting** - Fixed UserRepository.UpdateAsync to manually handle location assignments collection
-3. **Role-Based Scope Resolution** - Implemented GetEffectiveScopeAsync to map roles to effective scopes
+3. ~~**Role-Based Scope Resolution**~~ - OBSOLETE (scope resolution removed in refactoring)
+
+---
+
+## 🔄 Major Refactoring: Authorization Simplification (2025-11-05)
+
+### Overview
+
+After implementing the complex scope-based authorization system, we realized it was over-engineered for the business requirements. The system was refactored to use a much simpler model based on the principle:
+
+```
+Authorization = Does user have permission? + Is user assigned to location?
+```
+
+### What Was Removed
+
+#### Domain Layer
+- ❌ `PermissionScope` enum (Global, Owned, Managed, Assigned, Context)
+- ❌ `Permission.Scope` property
+- ❌ `Location.OwnerId` property
+- ❌ `Location.ManagerId` property
+- ❌ `UserLocationAssignment.LocationRoleId` property
+- ❌ `LocationAccessHelper` class (pure domain logic for scope-based access)
+- ❌ 4 domain events: LocationOwnerAssignedEvent, LocationOwnerRemovedEvent, LocationManagerAssignedEvent, LocationManagerRemovedEvent
+
+#### Application Layer
+- ❌ 4 command handlers: AssignLocationOwner, RemoveLocationOwner, AssignLocationManager, RemoveLocationManager
+- ❌ All scope resolution logic in CurrentUserService
+
+#### API Layer
+- ❌ 4 GraphQL mutations: AssignLocationOwner, RemoveLocationOwner, AssignLocationManager, RemoveLocationManager
+- ❌ 8 GraphQL input/payload files for ownership mutations
+
+#### Infrastructure Layer
+- ❌ Scope-based filtering logic in LocationAccessService
+- ❌ `GetEffectiveScopeAsync()` method in CurrentUserService
+- ❌ `GetPermissionScopeAsync()` method in CurrentUserService
+- ❌ Scope property mappings in EF Core configurations
+
+#### Database
+- ❌ `scope` column from `permissions` table
+- ❌ `owner_id` column from `locations` table
+- ❌ `manager_id` column from `locations` table
+- ❌ `location_role_id` column from `user_location_assignments` table
+- ❌ Related indexes
+
+### What Remains (Simplified)
+
+#### Core Authorization Model
+```csharp
+// Simple authorization check
+1. Does user's Role have the required Permission?
+2. Get user's accessible locations via UserLocationAssignment
+3. Filter data to only those locations
+```
+
+#### Key Entities
+- ✅ `User.RoleId` - One role per user (determines WHAT you can do)
+- ✅ `Role.PermissionIds` - What permissions the role has
+- ✅ `UserLocationAssignment` - Where you can do it (many-to-many)
+- ✅ `User.CurrentLocationContextId` - For context-based operations
+- ✅ `UserLocationAssignment.IsPrimaryLocation` - For UX purposes
+
+#### Simplified Services
+```csharp
+// LocationAccessService - Simplified
+public async Task<IEnumerable<Guid>> GetAccessibleLocationIdsAsync(
+    Guid userId,
+    CancellationToken cancellationToken = default)
+{
+    return await _context.UserLocationAssignments
+        .Where(ula => ula.UserId == userId && ula.Status == AssignmentStatus.Active)
+        .Select(ula => ula.LocationId)
+        .ToListAsync(cancellationToken);
+}
+
+// CurrentUserService - Simplified
+public async Task<IEnumerable<Guid>> GetAccessibleLocationIdsAsync(
+    CancellationToken cancellationToken = default)
+{
+    return await _locationAccessService.GetAccessibleLocationIdsAsync(
+        _currentUserId,
+        cancellationToken);
+}
+```
+
+### Benefits of Simplification
+
+1. **Reduced Complexity**: Removed ~500-1000 lines of code
+2. **Easier to Understand**: Simple permission + assignment check
+3. **Easier to Maintain**: No complex scope resolution logic
+4. **More Flexible**: Users can create multiple accounts if they need different roles at different locations
+5. **Clearer Separation**: Role determines WHAT, assignments determine WHERE
+
+### Migration Path
+
+**Database Migration:** `20251105212737_RemoveScopeAndOwnership.cs`
+- Drops scope and ownership columns
+- Drops related indexes
+- No data migration needed (assignments remain intact)
+
+**Code Changes:**
+- 17 files deleted
+- 15 files modified
+- Build successful with no errors
+
+### New Authorization Flow
+
+```
+User Request
+    ↓
+1. Check if user's Role has required Permission
+    ↓ (Yes)
+2. Get user's Active UserLocationAssignments
+    ↓
+3. Filter query results to only assigned locations
+    ↓
+Return filtered data
+```
+
+### Example: How Roles Work Now
+
+**HQ Admin:**
+- Role has all 24 permissions
+- Assigned to ALL locations via UserLocationAssignment
+- Sees all data because they're assigned to all locations
+
+**Store Owner:**
+- Role has 18 permissions (no user/role/permission management)
+- Assigned to owned locations via UserLocationAssignment
+- Sees only data from assigned locations
+- Can switch context between assigned locations
+
+**Store Manager:**
+- Role has 14 permissions
+- Assigned to managed location(s) via UserLocationAssignment
+- Sees only data from assigned locations
+
+**Employee:**
+- Role has 8 permissions
+- Assigned to work location(s) via UserLocationAssignment
+- Sees only data from assigned locations
+
+### Key Insight
+
+The old model tried to encode business relationships (owner, manager) into the authorization system. The new model recognizes that:
+- **Role** = What you're allowed to do (permissions)
+- **Assignment** = Where you're allowed to do it (locations)
+- **Business relationships** (who owns what) can be tracked separately if needed, but don't need to be part of authorization
+
+This is a much cleaner separation of concerns and aligns better with standard RBAC patterns.
+
+---
 

@@ -1,4 +1,4 @@
-namespace Domain.Users.Enums;
+namespace Domain.UserLocations.Enums;
 
 /// <summary>
 /// Represents the status of a user's assignment to a location.

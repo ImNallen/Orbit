@@ -1,9 +1,8 @@
-using Domain.Permission.Enums;
-
 namespace Application.Services;
 
 /// <summary>
 /// Service for accessing information about the currently authenticated user.
+/// Simplified to remove scope logic.
 /// </summary>
 public interface ICurrentUserService
 {
@@ -21,23 +20,11 @@ public interface ICurrentUserService
     string? GetUserEmail();
 
     /// <summary>
-    /// Gets the permission scope for a specific permission for the current user.
+    /// Gets all location IDs that the current user can access.
     /// </summary>
-    /// <param name="permissionName">The permission name (e.g., "customers:read").</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The permission scope, or null if the user doesn't have the permission.</returns>
-    Task<PermissionScope?> GetPermissionScopeAsync(
-        string permissionName,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Gets all location IDs that the current user can access for a specific permission.
-    /// </summary>
-    /// <param name="permissionName">The permission name (e.g., "customers:read").</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Collection of accessible location IDs. Returns empty collection if user doesn't have the permission.</returns>
+    /// <returns>Collection of accessible location IDs.</returns>
     Task<IEnumerable<Guid>> GetAccessibleLocationIdsAsync(
-        string permissionName,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -45,5 +32,14 @@ public interface ICurrentUserService
     /// </summary>
     /// <returns>True if the user is authenticated, false otherwise.</returns>
     bool IsAuthenticated();
+
+    /// <summary>
+    /// Gets the current user's current location context ID.
+    /// This is the location the user is currently working at.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The current location context ID, or null if not set.</returns>
+    Task<Guid?> GetCurrentLocationContextIdAsync(
+        CancellationToken cancellationToken = default);
 }
 

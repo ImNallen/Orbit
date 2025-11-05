@@ -76,22 +76,6 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
             .HasMaxLength(50)
             .IsRequired();
 
-        // Owner ID - optional foreign key to User
-        builder.Property(l => l.OwnerId)
-            .HasColumnName("owner_id")
-            .IsRequired(false);
-
-        builder.HasIndex(l => l.OwnerId)
-            .HasDatabaseName("ix_locations_owner_id");
-
-        // Manager ID - optional foreign key to User
-        builder.Property(l => l.ManagerId)
-            .HasColumnName("manager_id")
-            .IsRequired(false);
-
-        builder.HasIndex(l => l.ManagerId)
-            .HasDatabaseName("ix_locations_manager_id");
-
         // Timestamps
         builder.Property(l => l.CreatedAt)
             .HasColumnName("created_at")

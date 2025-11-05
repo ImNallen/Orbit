@@ -35,7 +35,10 @@ public sealed class GetInventoryByProductQueryHandler
         GetInventoryByProductQuery query,
         CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Getting inventory for product {ProductId}", query.ProductId);
+        _logger.LogInformation(
+            "Getting inventory for product {ProductId} with filter mode {FilterMode}",
+            query.ProductId,
+            query.FilterMode);
 
         // 1. Verify product exists
         Product? product = await _productRepository.GetByIdAsync(query.ProductId, cancellationToken);
@@ -45,24 +48,84 @@ public sealed class GetInventoryByProductQueryHandler
             return Result<GetInventoryByProductResult, DomainError>.Failure(ProductErrors.ProductNotFound);
         }
 
-        // 2. Get accessible location IDs for the current user
-        IEnumerable<Guid> accessibleLocationIds = await _currentUserService.GetAccessibleLocationIdsAsync(
-            "inventory:read",
-            cancellationToken);
+        // 2. Determine which locations to filter by based on filter mode
+        IEnumerable<Guid> targetLocationIds;
+
+        switch (query.FilterMode)
+        {
+            case Application.Common.Enums.LocationFilterMode.CurrentContext:
+                // Get user's current location context
+                Guid? currentLocationId = await _currentUserService.GetCurrentLocationContextIdAsync(
+                    cancellationToken);
+
+                if (currentLocationId is null)
+                {
+                    _logger.LogWarning("User has no current location context set");
+                    return Result<GetInventoryByProductResult, DomainError>.Failure(
+                        InventoryErrors.NoLocationContextSet);
+                }
+
+                targetLocationIds = new[] { currentLocationId.Value };
+                _logger.LogDebug("Filtering to current context location: {LocationId}", currentLocationId);
+                break;
+
+            case Application.Common.Enums.LocationFilterMode.AllAssigned:
+                // Get all accessible locations
+                targetLocationIds = await _currentUserService.GetAccessibleLocationIdsAsync(
+                    cancellationToken);
+                _logger.LogDebug("Filtering to all {Count} assigned locations", targetLocationIds.Count());
+                break;
+
+            case Application.Common.Enums.LocationFilterMode.Specific:
+                // Use specific location IDs provided in query
+                if (query.SpecificLocationIds is null || !query.SpecificLocationIds.Any())
+                {
+                    _logger.LogWarning("Specific filter mode requested but no location IDs provided");
+                    return Result<GetInventoryByProductResult, DomainError>.Failure(
+                        InventoryErrors.NoLocationIdsProvided);
+                }
+
+                // Verify user has access to all specified locations
+                IEnumerable<Guid> accessibleLocationIds = await _currentUserService.GetAccessibleLocationIdsAsync(
+                    cancellationToken);
+
+                var unauthorizedLocations = query.SpecificLocationIds
+                    .Where(id => !accessibleLocationIds.Contains(id))
+                    .ToList();
+
+                if (unauthorizedLocations.Any())
+                {
+                    _logger.LogWarning(
+                        "User does not have access to {Count} requested locations",
+                        unauthorizedLocations.Count);
+                    return Result<GetInventoryByProductResult, DomainError>.Failure(
+                        InventoryErrors.AccessDenied);
+                }
+
+                targetLocationIds = query.SpecificLocationIds;
+                _logger.LogDebug("Filtering to {Count} specific locations", targetLocationIds.Count());
+                break;
+
+            default:
+                _logger.LogError("Unknown filter mode: {FilterMode}", query.FilterMode);
+                return Result<GetInventoryByProductResult, DomainError>.Failure(
+                    InventoryErrors.InvalidFilterMode);
+        }
 
         // 3. Get all inventory for the product
         List<Domain.Inventory.Inventory> allInventories = await _inventoryRepository.GetByProductIdAsync(
             query.ProductId,
             cancellationToken);
 
-        // 4. Filter by accessible locations
+        // 4. Filter by target locations
         var inventories = allInventories
-            .Where(i => accessibleLocationIds.Contains(i.LocationId))
+            .Where(i => targetLocationIds.Contains(i.LocationId))
             .ToList();
 
         _logger.LogDebug(
-            "User has access to {AccessibleCount} out of {TotalCount} inventory records for product {ProductId}",
-            inventories.Count, allInventories.Count, query.ProductId);
+            "Found {Count} inventory records for product {ProductId} in target locations",
+            inventories.Count,
+            query.ProductId);
 
         // 5. Map to DTOs
         var inventoryDtos = inventories.Select(i => new InventoryDto(
