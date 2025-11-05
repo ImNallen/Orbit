@@ -74,6 +74,14 @@ public interface IUserRepository
     Task<List<User>> GetByRoleIdAsync(Guid roleId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets users assigned to a specific location.
+    /// </summary>
+    /// <param name="locationId">The location identifier.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>List of users assigned to the specified location.</returns>
+    Task<List<User>> GetByLocationIdAsync(Guid locationId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Checks if a user with the specified email exists.
     /// </summary>
     /// <param name="email">The email to check.</param>

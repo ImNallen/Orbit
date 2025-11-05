@@ -103,11 +103,19 @@ namespace Infrastructure.Database.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<Guid?>("ManagerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("manager_id");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("name");
+
+                    b.Property<Guid?>("OwnerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("owner_id");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -127,8 +135,14 @@ namespace Infrastructure.Database.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ManagerId")
+                        .HasDatabaseName("ix_locations_manager_id");
+
                     b.HasIndex("Name")
                         .HasDatabaseName("ix_locations_name");
+
+                    b.HasIndex("OwnerId")
+                        .HasDatabaseName("ix_locations_owner_id");
 
                     b.ToTable("locations", (string)null);
                 });
@@ -375,6 +389,10 @@ namespace Infrastructure.Database.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<Guid?>("CurrentLocationContextId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("current_location_context_id");
+
                     b.Property<string>("EmailVerificationToken")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
@@ -425,6 +443,9 @@ namespace Infrastructure.Database.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CurrentLocationContextId")
+                        .HasDatabaseName("ix_users_current_location_context_id");
+
                     b.HasIndex("EmailVerificationToken")
                         .HasDatabaseName("ix_users_email_verification_token");
 
@@ -432,6 +453,67 @@ namespace Infrastructure.Database.Migrations
                         .HasDatabaseName("ix_users_password_reset_token");
 
                     b.ToTable("users", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Users.UserLocationAssignment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("AssignedDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("assigned_date");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("IsPrimaryLocation")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_primary_location");
+
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("location_id");
+
+                    b.Property<Guid?>("LocationRoleId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("location_role_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime?>("TerminatedDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("terminated_date");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LocationId")
+                        .HasDatabaseName("ix_user_location_assignments_location_id");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_user_location_assignments_status");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_user_location_assignments_user_id");
+
+                    b.HasIndex("UserId", "LocationId")
+                        .HasDatabaseName("ix_user_location_assignments_user_location");
+
+                    b.ToTable("user_location_assignments", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Customers.Customer", b =>

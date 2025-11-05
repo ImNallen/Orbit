@@ -110,11 +110,22 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasColumnName("role_id")
             .IsRequired();
 
+        // Current Location Context ID - optional foreign key
+        builder.Property(u => u.CurrentLocationContextId)
+            .HasColumnName("current_location_context_id")
+            .IsRequired(false);
+
+        builder.HasIndex(u => u.CurrentLocationContextId)
+            .HasDatabaseName("ix_users_current_location_context_id");
+
         // Ignore domain events (not persisted)
         builder.Ignore(u => u.DomainEvents);
 
         // Ignore password history collection (stored in separate table)
         builder.Ignore(u => u.PasswordHistory);
+
+        // Ignore location assignments collection (stored in separate table)
+        builder.Ignore(u => u.LocationAssignments);
     }
 }
 

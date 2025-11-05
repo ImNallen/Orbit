@@ -17,6 +17,7 @@ using Infrastructure.Database.Repositories;
 using Infrastructure.EmailConfiguration;
 using Infrastructure.EmailServices;
 using Infrastructure.Http;
+using Infrastructure.Services;
 using Infrastructure.Time;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -68,6 +69,7 @@ public static class DependencyInjection
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
         services.AddSingleton<ITokenExpirationSettings, TokenExpirationSettings>();
         services.AddScoped<IAuthorizationService, AuthorizationService>();
+        services.AddScoped<ILocationAccessService, LocationAccessService>();
         services.AddScoped<Domain.Abstractions.IHttpContextAccessor, HttpContextAccessor>();
 
         // Email Services

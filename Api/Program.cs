@@ -1,5 +1,6 @@
 using System.Text;
 using Api.Authorization;
+using Api.Extensions;
 using Api.GraphQL.ErrorFilters;
 using Api.GraphQL.Mutations;
 using Api.GraphQL.Queries;
@@ -75,75 +76,11 @@ builder.Services
         };
     });
 
-// Add Authorization with policies
+// Add Authorization with permission-based policies
 builder.Services.AddAuthorization(options =>
 {
-    // Permission-based policies
-    options.AddPolicy("users:create", policy =>
-        policy.Requirements.Add(new PermissionRequirement("users:create")));
-    options.AddPolicy("users:read", policy =>
-        policy.Requirements.Add(new PermissionRequirement("users:read")));
-    options.AddPolicy("users:update", policy =>
-        policy.Requirements.Add(new PermissionRequirement("users:update")));
-    options.AddPolicy("users:delete", policy =>
-        policy.Requirements.Add(new PermissionRequirement("users:delete")));
-
-    options.AddPolicy("roles:create", policy =>
-        policy.Requirements.Add(new PermissionRequirement("roles:create")));
-    options.AddPolicy("roles:read", policy =>
-        policy.Requirements.Add(new PermissionRequirement("roles:read")));
-    options.AddPolicy("roles:update", policy =>
-        policy.Requirements.Add(new PermissionRequirement("roles:update")));
-    options.AddPolicy("roles:delete", policy =>
-        policy.Requirements.Add(new PermissionRequirement("roles:delete")));
-    options.AddPolicy("roles:assign", policy =>
-        policy.Requirements.Add(new PermissionRequirement("roles:assign")));
-    options.AddPolicy("roles:remove", policy =>
-        policy.Requirements.Add(new PermissionRequirement("roles:remove")));
-
-    options.AddPolicy("permissions:read", policy =>
-        policy.Requirements.Add(new PermissionRequirement("permissions:read")));
-
-    options.AddPolicy("sessions:read", policy =>
-        policy.Requirements.Add(new PermissionRequirement("sessions:read")));
-    options.AddPolicy("sessions:delete", policy =>
-        policy.Requirements.Add(new PermissionRequirement("sessions:delete")));
-    
-    options.AddPolicy("customers:create", policy =>
-        policy.Requirements.Add(new PermissionRequirement("customers:create")));
-    options.AddPolicy("customers:read", policy =>
-        policy.Requirements.Add(new PermissionRequirement("customers:read")));
-    options.AddPolicy("customers:update", policy =>
-        policy.Requirements.Add(new PermissionRequirement("customers:update")));
-    options.AddPolicy("customers:delete", policy =>
-        policy.Requirements.Add(new PermissionRequirement("customers:delete")));
-
-    options.AddPolicy("products:create", policy =>
-        policy.Requirements.Add(new PermissionRequirement("products:create")));
-    options.AddPolicy("products:read", policy =>
-        policy.Requirements.Add(new PermissionRequirement("products:read")));
-    options.AddPolicy("products:update", policy =>
-        policy.Requirements.Add(new PermissionRequirement("products:update")));
-    options.AddPolicy("products:delete", policy =>
-        policy.Requirements.Add(new PermissionRequirement("products:delete")));
-    
-    options.AddPolicy("locations:create", policy =>
-        policy.Requirements.Add(new PermissionRequirement("locations:create")));
-    options.AddPolicy("locations:read", policy =>
-        policy.Requirements.Add(new PermissionRequirement("locations:read")));
-    options.AddPolicy("locations:update", policy =>
-        policy.Requirements.Add(new PermissionRequirement("locations:update")));
-    options.AddPolicy("locations:delete", policy =>
-        policy.Requirements.Add(new PermissionRequirement("locations:delete")));
-    
-    options.AddPolicy("inventory:create", policy =>
-        policy.Requirements.Add(new PermissionRequirement("inventory:create")));
-    options.AddPolicy("inventory:read", policy =>
-        policy.Requirements.Add(new PermissionRequirement("inventory:read")));
-    options.AddPolicy("inventory:update", policy =>
-        policy.Requirements.Add(new PermissionRequirement("inventory:update")));
-    options.AddPolicy("inventory:delete", policy =>
-        policy.Requirements.Add(new PermissionRequirement("inventory:delete")));
+    // Automatically register all permission policies using the extension method
+    options.AddPermissionPoliciesWithBuilder();
 });
 
 // Register the permission authorization handler

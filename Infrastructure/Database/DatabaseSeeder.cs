@@ -79,6 +79,18 @@ public class DatabaseSeeder
             Permission.Create("sessions:read", "Read session information", "sessions", "read"),
             Permission.Create("sessions:revoke", "Revoke sessions", "sessions", "revoke"),
 
+            // Location permissions
+            Permission.Create("locations:create", "Create new locations", "locations", "create"),
+            Permission.Create("locations:read", "Read location information", "locations", "read"),
+            Permission.Create("locations:update", "Update location information", "locations", "update"),
+            Permission.Create("locations:delete", "Delete locations", "locations", "delete"),
+
+            // Inventory permissions
+            Permission.Create("inventory:create", "Create inventory records", "inventory", "create"),
+            Permission.Create("inventory:read", "Read inventory information", "inventory", "read"),
+            Permission.Create("inventory:update", "Update inventory information", "inventory", "update"),
+            Permission.Create("inventory:delete", "Delete inventory records", "inventory", "delete"),
+
             // Customer permissions
             Permission.Create("customers:create", "Create new customers", "customers", "create"),
             Permission.Create("customers:read", "Read customer information", "customers", "read"),
@@ -115,29 +127,130 @@ public class DatabaseSeeder
         // Get all permissions
         List<Permission> allPermissions = await _context.Permissions.ToListAsync();
 
-        // Admin role - has all permissions
-        var adminPermissions = allPermissions.Select(p => p.Id).ToList();
-        var adminRole = Role.Create("Admin", "Administrator with full system access");
-        foreach (Guid permissionId in adminPermissions)
+        // Helper function to get permission IDs by resource and actions
+        List<Guid> GetPermissionIds(params string[] permissionNames) => allPermissions
+                .Where(p => permissionNames.Contains(p.Name))
+                .Select(p => p.Id)
+                .ToList();
+
+        // 1. HQ Admin Role - Full system access (Global scope)
+        // Can manage everything across all locations
+        var hqAdminRole = Role.Create(
+            "HQ Admin",
+            "Headquarters administrator with full system access across all locations");
+        foreach (Guid permissionId in allPermissions.Select(p => p.Id))
         {
-            adminRole.AddPermission(permissionId);
+            hqAdminRole.AddPermission(permissionId);
         }
 
-        // User role - has basic read permissions
-        var userPermissions = allPermissions
+        // 2. Store Owner Role - Manages multiple owned locations (Owned scope)
+        // Can manage their owned stores, view all data for owned locations
+        var storeOwnerRole = Role.Create(
+            "Store Owner",
+            "Owner of one or more store locations with management capabilities");
+        List<Guid> storeOwnerPermissions = GetPermissionIds(
+            // Location management for owned stores
+            "locations:read",
+            "locations:update",
+            // User management for their stores
+            "users:read",
+            "users:create",
+            "users:update",
+            // Inventory management
+            "inventory:read",
+            "inventory:create",
+            "inventory:update",
+            // Product viewing (centralized catalog)
+            "products:read",
+            // Customer management
+            "customers:read",
+            "customers:create",
+            "customers:update",
+            // Session management
+            "sessions:read"
+        );
+        foreach (Guid permissionId in storeOwnerPermissions)
+        {
+            storeOwnerRole.AddPermission(permissionId);
+        }
+
+        // 3. Store Manager Role - Manages one location (Managed scope)
+        // Can manage their assigned store, limited user management
+        var storeManagerRole = Role.Create(
+            "Store Manager",
+            "Manager of a single store location with operational capabilities");
+        List<Guid> storeManagerPermissions = GetPermissionIds(
+            // Location viewing
+            "locations:read",
+            // Limited user management (read only)
+            "users:read",
+            // Inventory management for their store
+            "inventory:read",
+            "inventory:create",
+            "inventory:update",
+            // Product viewing
+            "products:read",
+            // Customer management
+            "customers:read",
+            "customers:create",
+            "customers:update",
+            // Session management
+            "sessions:read"
+        );
+        foreach (Guid permissionId in storeManagerPermissions)
+        {
+            storeManagerRole.AddPermission(permissionId);
+        }
+
+        // 4. Employee Role - Works at assigned locations (Assigned/Context scope)
+        // Basic operational access, can switch between assigned locations
+        var employeeRole = Role.Create(
+            "Employee",
+            "Store employee with basic operational access to assigned locations");
+        List<Guid> employeePermissions = GetPermissionIds(
+            // Location viewing
+            "locations:read",
+            // User viewing (limited)
+            "users:read",
+            // Inventory viewing and basic updates
+            "inventory:read",
+            "inventory:update",
+            // Product viewing
+            "products:read",
+            // Customer viewing and creation
+            "customers:read",
+            "customers:create",
+            // Session viewing
+            "sessions:read"
+        );
+        foreach (Guid permissionId in employeePermissions)
+        {
+            employeeRole.AddPermission(permissionId);
+        }
+
+        // 5. Read-Only User Role - Basic read access
+        // For reporting, analytics, or limited access users
+        var readOnlyRole = Role.Create(
+            "Read-Only User",
+            "User with read-only access to basic information");
+        var readOnlyPermissions = allPermissions
             .Where(p => p.Action == "read")
             .Select(p => p.Id)
             .ToList();
-        var userRole = Role.Create("User", "Standard user with read-only access");
-        foreach (Guid permissionId in userPermissions)
+        foreach (Guid permissionId in readOnlyPermissions)
         {
-            userRole.AddPermission(permissionId);
+            readOnlyRole.AddPermission(permissionId);
         }
 
-        await _context.Roles.AddRangeAsync(adminRole, userRole);
+        await _context.Roles.AddRangeAsync(
+            hqAdminRole,
+            storeOwnerRole,
+            storeManagerRole,
+            employeeRole,
+            readOnlyRole);
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Seeded 2 roles (Admin, User).");
+        _logger.LogInformation("Seeded 5 roles (HQ Admin, Store Owner, Store Manager, Employee, Read-Only User).");
     }
 
     /// <summary>
@@ -154,11 +267,11 @@ public class DatabaseSeeder
 
         _logger.LogInformation("Seeding default admin user...");
 
-        // Get the Admin role
-        Role? adminRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
+        // Get the HQ Admin role
+        Role? adminRole = await _context.Roles.FirstOrDefaultAsync(r => r.Name == "HQ Admin");
         if (adminRole is null)
         {
-            _logger.LogError("Admin role not found. Cannot seed default admin user.");
+            _logger.LogError("HQ Admin role not found. Cannot seed default admin user.");
             return;
         }
 

@@ -18,6 +18,7 @@ public sealed class User : Entity
     private const int PasswordHistoryLimit = 5;
 
     private readonly List<PasswordHash> _passwordHistory = [];
+    private readonly List<UserLocationAssignment> _locationAssignments = [];
 
     private User(
         Guid id,
@@ -66,6 +67,10 @@ public sealed class User : Entity
     // Relationships
     public Guid RoleId { get; private set; }
     public IReadOnlyCollection<PasswordHash> PasswordHistory => _passwordHistory.AsReadOnly();
+
+    // Location Context
+    public Guid? CurrentLocationContextId { get; private set; }
+    public IReadOnlyCollection<UserLocationAssignment> LocationAssignments => _locationAssignments.AsReadOnly();
 
     /// <summary>
     /// Creates a new user.
@@ -370,5 +375,187 @@ public sealed class User : Entity
 
         Raise(new UserProfileUpdatedEvent(Id, newFullName.FirstName, newFullName.LastName));
     }
+
+    #region Location Assignment Methods
+
+    /// <summary>
+    /// Assigns the user to a location.
+    /// </summary>
+    /// <param name="locationId">The location ID.</param>
+    /// <param name="locationRoleId">Optional location-specific role ID.</param>
+    /// <param name="isPrimaryLocation">Whether this is the user's primary location.</param>
+    /// <returns>Result indicating success or failure.</returns>
+    public Result<DomainError> AssignToLocation(
+        Guid locationId,
+        Guid? locationRoleId = null,
+        bool isPrimaryLocation = false)
+    {
+        // Check if already assigned to this location
+        if (_locationAssignments.Any(a => a.LocationId == locationId && a.Status != AssignmentStatus.Terminated))
+        {
+            return Result<DomainError>.Failure(
+                UserLocationAssignmentErrors.UserAlreadyAssignedToLocation);
+        }
+
+        // If setting as primary, ensure no other primary location exists
+        if (isPrimaryLocation)
+        {
+            UserLocationAssignment? existingPrimary = _locationAssignments.FirstOrDefault(a =>
+                a.IsPrimaryLocation && a.Status == AssignmentStatus.Active);
+
+            if (existingPrimary is not null)
+            {
+                return Result<DomainError>.Failure(
+                    UserLocationAssignmentErrors.MultiplePrimaryLocationsNotAllowed);
+            }
+        }
+
+        Result<UserLocationAssignment, DomainError> assignmentResult = UserLocationAssignment.Create(
+            Id,
+            locationId,
+            locationRoleId,
+            isPrimaryLocation);
+
+        if (assignmentResult.IsFailure)
+        {
+            return Result<DomainError>.Failure(assignmentResult.Error);
+        }
+
+        _locationAssignments.Add(assignmentResult.Value);
+
+        // If this is the first assignment, set it as current context
+        if (_locationAssignments.Count == 1)
+        {
+            CurrentLocationContextId = locationId;
+        }
+
+        Raise(new UserAssignedToLocationEvent(Id, locationId, isPrimaryLocation));
+
+        return Result<DomainError>.Success();
+    }
+
+    /// <summary>
+    /// Unassigns the user from a location.
+    /// </summary>
+    /// <param name="locationId">The location ID.</param>
+    /// <returns>Result indicating success or failure.</returns>
+    public Result<DomainError> UnassignFromLocation(Guid locationId)
+    {
+        UserLocationAssignment? assignment = _locationAssignments.FirstOrDefault(a =>
+            a.LocationId == locationId && a.Status != AssignmentStatus.Terminated);
+
+        if (assignment is null)
+        {
+            return Result<DomainError>.Failure(
+                UserLocationAssignmentErrors.UserNotAssignedToLocation);
+        }
+
+        // Check if this is the last active assignment
+        int activeAssignments = _locationAssignments.Count(a => a.Status == AssignmentStatus.Active);
+        if (activeAssignments == 1 && assignment.Status == AssignmentStatus.Active)
+        {
+            return Result<DomainError>.Failure(
+                UserLocationAssignmentErrors.CannotRemoveLastActiveAssignment);
+        }
+
+        Result<DomainError> terminateResult = assignment.Terminate();
+        if (terminateResult.IsFailure)
+        {
+            return Result<DomainError>.Failure(terminateResult.Error);
+        }
+
+        // If this was the current context, switch to another active location
+        if (CurrentLocationContextId == locationId)
+        {
+            UserLocationAssignment? newContext = _locationAssignments.FirstOrDefault(a =>
+                a.Status == AssignmentStatus.Active && a.LocationId != locationId);
+
+            CurrentLocationContextId = newContext?.LocationId;
+        }
+
+        Raise(new UserUnassignedFromLocationEvent(Id, locationId));
+
+        return Result<DomainError>.Success();
+    }
+
+    /// <summary>
+    /// Switches the user's current location context.
+    /// </summary>
+    /// <param name="locationId">The location ID to switch to.</param>
+    /// <returns>Result indicating success or failure.</returns>
+    public Result<DomainError> SwitchLocationContext(Guid locationId)
+    {
+        UserLocationAssignment? assignment = _locationAssignments.FirstOrDefault(a => a.LocationId == locationId);
+
+        if (assignment is null)
+        {
+            return Result<DomainError>.Failure(
+                UserLocationAssignmentErrors.CannotSwitchToUnassignedLocation);
+        }
+
+        if (assignment.Status != AssignmentStatus.Active)
+        {
+            return Result<DomainError>.Failure(
+                UserLocationAssignmentErrors.CannotSwitchToInactiveAssignment);
+        }
+
+        Guid? previousLocationId = CurrentLocationContextId;
+        CurrentLocationContextId = locationId;
+
+        Raise(new LocationContextSwitchedEvent(Id, previousLocationId, locationId));
+
+        return Result<DomainError>.Success();
+    }
+
+    /// <summary>
+    /// Checks if the user can access a specific location.
+    /// </summary>
+    /// <param name="locationId">The location ID.</param>
+    /// <returns>True if the user has access, false otherwise.</returns>
+    public bool CanAccessLocation(Guid locationId)
+    {
+        return _locationAssignments.Any(a =>
+            a.LocationId == locationId && a.Status == AssignmentStatus.Active);
+    }
+
+    /// <summary>
+    /// Gets all location IDs the user has access to.
+    /// </summary>
+    /// <returns>Collection of accessible location IDs.</returns>
+    public IEnumerable<Guid> GetAccessibleLocationIds()
+    {
+        return _locationAssignments
+            .Where(a => a.Status == AssignmentStatus.Active)
+            .Select(a => a.LocationId);
+    }
+
+    /// <summary>
+    /// Sets a location as the user's primary location.
+    /// </summary>
+    /// <param name="locationId">The location ID.</param>
+    /// <returns>Result indicating success or failure.</returns>
+    public Result<DomainError> SetPrimaryLocation(Guid locationId)
+    {
+        UserLocationAssignment? assignment = _locationAssignments.FirstOrDefault(a =>
+            a.LocationId == locationId && a.Status == AssignmentStatus.Active);
+
+        if (assignment is null)
+        {
+            return Result<DomainError>.Failure(
+                UserLocationAssignmentErrors.UserNotAssignedToLocation);
+        }
+
+        // Remove primary designation from all other locations
+        foreach (UserLocationAssignment otherAssignment in _locationAssignments.Where(a => a.Id != assignment.Id))
+        {
+            otherAssignment.RemoveAsPrimary();
+        }
+
+        assignment.SetAsPrimary();
+
+        return Result<DomainError>.Success();
+    }
+
+    #endregion
 }
 

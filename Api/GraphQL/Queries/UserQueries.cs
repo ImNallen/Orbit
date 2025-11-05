@@ -4,6 +4,7 @@ using Api.GraphQL.Types;
 using Application.Users.Queries.GetCurrentUser;
 using Application.Users.Queries.GetUserById;
 using Application.Users.Queries.GetUsers;
+using Application.Users.Queries.GetUsersByLocation;
 using Application.Users.Queries.GetUserSessions;
 using Domain.Abstractions;
 using HotChocolate.Authorization;
@@ -175,5 +176,55 @@ public sealed class UserQueries
         }).ToList();
 
         return SessionsPayload.Success(sessions);
+    }
+
+    /// <summary>
+    /// Get all users assigned to a specific location.
+    /// Requires users:read permission.
+    /// </summary>
+    [Authorize(Policy = "users:read")]
+    public async Task<UsersPayload> UsersByLocationAsync(
+        Guid locationId,
+        [Service] IMediator mediator,
+        int page = 1,
+        int pageSize = 10,
+        CancellationToken cancellationToken = default)
+    {
+        var query = new GetUsersByLocationQuery(locationId, page, pageSize);
+        Result<GetUsersByLocationResult, DomainError> result = await mediator.Send(query, cancellationToken);
+
+        if (result.IsFailure)
+        {
+            return new UsersPayload
+            {
+                Users = Array.Empty<UserSummaryType>(),
+                TotalCount = 0,
+                Page = page,
+                PageSize = pageSize,
+                TotalPages = 0,
+                Errors = new[] { new UserError(result.Error.Code, result.Error.Message) }
+            };
+        }
+
+        return new UsersPayload
+        {
+            Users = result.Value.Users.Select(u => new UserSummaryType
+            {
+                UserId = u.UserId,
+                Email = u.Email,
+                FirstName = u.FirstName,
+                LastName = u.LastName,
+                IsEmailVerified = u.IsEmailVerified,
+                Status = u.Status,
+                CreatedAt = u.CreatedAt,
+                LastLoginAt = u.LastLoginAt,
+                Role = u.RoleName
+            }).ToList(),
+            TotalCount = result.Value.TotalCount,
+            Page = result.Value.Page,
+            PageSize = result.Value.PageSize,
+            TotalPages = result.Value.TotalPages,
+            Errors = Array.Empty<UserError>()
+        };
     }
 }

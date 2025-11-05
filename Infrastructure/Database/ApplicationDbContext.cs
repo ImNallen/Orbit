@@ -34,6 +34,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Permission> Permissions => Set<Permission>();
     public DbSet<Session> Sessions => Set<Session>();
     public DbSet<PasswordHistory> PasswordHistory => Set<PasswordHistory>();
+    public DbSet<UserLocationAssignment> UserLocationAssignments => Set<UserLocationAssignment>();
     public DbSet<Customer> Customers => Set<Customer>();
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Location> Locations => Set<Location>();

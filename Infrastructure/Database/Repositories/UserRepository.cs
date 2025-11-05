@@ -74,6 +74,16 @@ public class UserRepository : IUserRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<User>> GetByLocationIdAsync(Guid locationId, CancellationToken cancellationToken = default)
+    {
+        return await _context.Users
+            .AsNoTracking()
+            .Where(u => u.LocationAssignments.Any(a =>
+                a.LocationId == locationId &&
+                a.Status == Domain.Users.Enums.AssignmentStatus.Active))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<bool> ExistsByEmailAsync(Email email, CancellationToken cancellationToken = default)
     {
         return await _context.Users
