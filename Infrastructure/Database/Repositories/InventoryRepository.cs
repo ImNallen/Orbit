@@ -49,6 +49,16 @@ public class InventoryRepository : Domain.Inventory.IInventoryRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<List<Domain.Inventory.Inventory>> GetByLocationIdsAsync(
+        IEnumerable<Guid> locationIds,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.Inventory
+            .AsNoTracking()
+            .Where(i => locationIds.Contains(i.LocationId))
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<List<Domain.Inventory.Inventory>> GetAllAsync(
         int skip = 0,
         int take = 100,

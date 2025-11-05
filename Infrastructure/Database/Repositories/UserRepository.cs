@@ -100,6 +100,47 @@ public class UserRepository : IUserRepository
     public async Task UpdateAsync(User user, CancellationToken cancellationToken = default)
     {
         _context.Users.Update(user);
+
+        // Handle location assignments separately since they're ignored in User configuration
+        // Get existing assignments from database
+        List<UserLocationAssignment> existingAssignments = await _context.UserLocationAssignments
+            .Where(a => a.UserId == user.Id)
+            .ToListAsync(cancellationToken);
+
+        // Get current assignments from the user entity
+        var currentAssignments = user.LocationAssignments.ToList();
+
+        // Find assignments to add (in current but not in existing)
+        var assignmentsToAdd = currentAssignments
+            .Where(ca => !existingAssignments.Any(ea => ea.Id == ca.Id))
+            .ToList();
+
+        // Find assignments to update (in both, but may have changed)
+        var assignmentsToUpdate = currentAssignments
+            .Where(ca => existingAssignments.Any(ea => ea.Id == ca.Id))
+            .ToList();
+
+        // Find assignments to remove (in existing but not in current)
+        var assignmentsToRemove = existingAssignments
+            .Where(ea => !currentAssignments.Any(ca => ca.Id == ea.Id))
+            .ToList();
+
+        // Apply changes
+        if (assignmentsToAdd.Any())
+        {
+            await _context.UserLocationAssignments.AddRangeAsync(assignmentsToAdd, cancellationToken);
+        }
+
+        if (assignmentsToUpdate.Any())
+        {
+            _context.UserLocationAssignments.UpdateRange(assignmentsToUpdate);
+        }
+
+        if (assignmentsToRemove.Any())
+        {
+            _context.UserLocationAssignments.RemoveRange(assignmentsToRemove);
+        }
+
         await _context.SaveChangesAsync(cancellationToken);
     }
 

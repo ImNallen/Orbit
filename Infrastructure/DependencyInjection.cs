@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Mail;
 using Application.Abstractions.Email;
+using Application.Services;
 using Domain.Abstractions;
 using Domain.Customers;
 using Domain.Inventory;
@@ -70,6 +71,7 @@ public static class DependencyInjection
         services.AddSingleton<ITokenExpirationSettings, TokenExpirationSettings>();
         services.AddScoped<IAuthorizationService, AuthorizationService>();
         services.AddScoped<ILocationAccessService, LocationAccessService>();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<Domain.Abstractions.IHttpContextAccessor, HttpContextAccessor>();
 
         // Email Services

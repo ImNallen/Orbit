@@ -1,4 +1,5 @@
 using Application.Inventory.Queries.GetInventoryById;
+using Application.Services;
 using Domain.Abstractions;
 using Domain.Inventory;
 using Domain.Locations;
@@ -15,15 +16,18 @@ public sealed class GetInventoryByLocationQueryHandler
 {
     private readonly IInventoryRepository _inventoryRepository;
     private readonly ILocationRepository _locationRepository;
+    private readonly ICurrentUserService _currentUserService;
     private readonly ILogger<GetInventoryByLocationQueryHandler> _logger;
 
     public GetInventoryByLocationQueryHandler(
         IInventoryRepository inventoryRepository,
         ILocationRepository locationRepository,
+        ICurrentUserService currentUserService,
         ILogger<GetInventoryByLocationQueryHandler> logger)
     {
         _inventoryRepository = inventoryRepository;
         _locationRepository = locationRepository;
+        _currentUserService = currentUserService;
         _logger = logger;
     }
 
@@ -33,7 +37,7 @@ public sealed class GetInventoryByLocationQueryHandler
     {
         _logger.LogInformation("Getting inventory for location {LocationId}", query.LocationId);
 
-        // Verify location exists
+        // 1. Verify location exists
         Location? location = await _locationRepository.GetByIdAsync(query.LocationId, cancellationToken);
         if (location is null)
         {
@@ -41,10 +45,25 @@ public sealed class GetInventoryByLocationQueryHandler
             return Result<GetInventoryByLocationResult, DomainError>.Failure(LocationErrors.LocationNotFound);
         }
 
+        // 2. Check if user has access to this location
+        IEnumerable<Guid> accessibleLocationIds = await _currentUserService.GetAccessibleLocationIdsAsync(
+            "inventory:read",
+            cancellationToken);
+
+        if (!accessibleLocationIds.Contains(query.LocationId))
+        {
+            _logger.LogWarning(
+                "User {UserId} does not have access to location {LocationId}",
+                _currentUserService.GetUserId(), query.LocationId);
+            return Result<GetInventoryByLocationResult, DomainError>.Failure(InventoryErrors.AccessDenied);
+        }
+
+        // 3. Get inventory for the location
         List<Domain.Inventory.Inventory> inventories = await _inventoryRepository.GetByLocationIdAsync(
             query.LocationId,
             cancellationToken);
 
+        // 4. Map to DTOs
         var inventoryDtos = inventories.Select(i => new InventoryDto(
             i.Id,
             i.ProductId,

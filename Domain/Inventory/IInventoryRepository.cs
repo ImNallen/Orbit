@@ -9,6 +9,12 @@ public interface IInventoryRepository
     Task<Inventory?> GetByProductAndLocationAsync(Guid productId, Guid locationId, CancellationToken cancellationToken = default);
     Task<List<Inventory>> GetByProductIdAsync(Guid productId, CancellationToken cancellationToken = default);
     Task<List<Inventory>> GetByLocationIdAsync(Guid locationId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets inventory records for multiple locations (for location-based access control).
+    /// </summary>
+    Task<List<Inventory>> GetByLocationIdsAsync(IEnumerable<Guid> locationIds, CancellationToken cancellationToken = default);
+
     Task<List<Inventory>> GetAllAsync(int skip = 0, int take = 100, CancellationToken cancellationToken = default);
     Task<int> GetCountAsync(CancellationToken cancellationToken = default);
 

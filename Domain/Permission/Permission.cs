@@ -1,4 +1,5 @@
 using Domain.Abstractions;
+using Domain.Permission.Enums;
 
 namespace Domain.Permission;
 
@@ -7,13 +8,14 @@ namespace Domain.Permission;
 /// </summary>
 public sealed class Permission : Entity
 {
-    private Permission(Guid id, string name, string description, string resource, string action)
+    private Permission(Guid id, string name, string description, string resource, string action, PermissionScope scope)
         : base(id)
     {
         Name = name;
         Description = description;
         Resource = resource;
         Action = action;
+        Scope = scope;
     }
 
     // EF Core constructor
@@ -40,10 +42,16 @@ public sealed class Permission : Entity
     public string Action { get; private set; } = string.Empty;
 
     /// <summary>
+    /// The scope of this permission (Global, Owned, Managed, Assigned, Context).
+    /// Determines which locations a user can access with this permission.
+    /// </summary>
+    public PermissionScope Scope { get; private set; } = PermissionScope.Global;
+
+    /// <summary>
     /// Creates a new Permission.
     /// </summary>
 #pragma warning disable CA1308 // Permission resources and actions are case-insensitive and lowercase is the standard
-    public static Permission Create(string name, string description, string resource, string action)
+    public static Permission Create(string name, string description, string resource, string action, PermissionScope scope = PermissionScope.Global)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentException.ThrowIfNullOrWhiteSpace(description);
@@ -55,7 +63,8 @@ public sealed class Permission : Entity
             name.Trim(),
             description.Trim(),
             resource.Trim().ToLowerInvariant(),
-            action.Trim().ToLowerInvariant());
+            action.Trim().ToLowerInvariant(),
+            scope);
     }
 #pragma warning restore CA1308
 

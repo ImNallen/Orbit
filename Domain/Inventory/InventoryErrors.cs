@@ -36,6 +36,10 @@ public static class InventoryErrors
         "Inventory.AlreadyExists",
         "Inventory record already exists for this product at this location.");
 
+    public static readonly DomainError AccessDenied = new InventoryError(
+        "Inventory.AccessDenied",
+        "You do not have access to this inventory record.");
+
     // Private error record
     private sealed record InventoryError(string Code, string Message) : DomainError(Code, Message);
 }
