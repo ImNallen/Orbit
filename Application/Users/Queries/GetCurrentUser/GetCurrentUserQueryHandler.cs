@@ -1,4 +1,7 @@
 using Domain.Abstractions;
+using Domain.Locations;
+using Domain.UserLocations;
+using Domain.UserLocations.Enums;
 using Domain.Users;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -12,15 +15,18 @@ public sealed class GetCurrentUserQueryHandler
     : IRequestHandler<GetCurrentUserQuery, Result<GetCurrentUserResult, DomainError>>
 {
     private readonly IUserRepository _userRepository;
+    private readonly ILocationRepository _locationRepository;
     private readonly IAuthorizationService _authorizationService;
     private readonly ILogger<GetCurrentUserQueryHandler> _logger;
 
     public GetCurrentUserQueryHandler(
         IUserRepository userRepository,
+        ILocationRepository locationRepository,
         IAuthorizationService authorizationService,
         ILogger<GetCurrentUserQueryHandler> logger)
     {
         _userRepository = userRepository;
+        _locationRepository = locationRepository;
         _authorizationService = authorizationService;
         _logger = logger;
     }
@@ -46,7 +52,38 @@ public sealed class GetCurrentUserQueryHandler
         _logger.LogDebug("User {UserId} has role {Role} and {PermissionCount} permissions",
             user.Id, role ?? "none", permissions.Count);
 
-        // 3. Return result
+        // 3. Get user's active location assignments
+        var activeAssignments = user.LocationAssignments
+            .Where(a => a.Status == AssignmentStatus.Active)
+            .ToList();
+
+        // 4. Fetch location details for assigned locations
+        var locationIds = activeAssignments.Select(a => a.LocationId).ToList();
+        var assignedLocationDtos = new List<UserLocationDto>();
+
+        foreach (Guid locationId in locationIds)
+        {
+            Location? location = await _locationRepository.GetByIdAsync(locationId, cancellationToken);
+            if (location is not null)
+            {
+                UserLocationAssignment assignment = activeAssignments.First(a => a.LocationId == locationId);
+                assignedLocationDtos.Add(new UserLocationDto(
+                    location.Id,
+                    location.Name.Value,
+                    location.Type,
+                    location.Status,
+                    location.Address.City,
+                    location.Address.State,
+                    location.Address.Country,
+                    assignment.IsPrimaryLocation,
+                    user.CurrentLocationContextId == locationId));
+            }
+        }
+
+        _logger.LogDebug("User {UserId} has {LocationCount} assigned locations",
+            user.Id, assignedLocationDtos.Count);
+
+        // 5. Return result
         return Result<GetCurrentUserResult, DomainError>.Success(
             new GetCurrentUserResult(
                 user.Id,
@@ -58,7 +95,9 @@ public sealed class GetCurrentUserQueryHandler
                 user.CreatedAt,
                 user.LastLoginAt,
                 role,
-                permissions));
+                permissions,
+                user.CurrentLocationContextId,
+                assignedLocationDtos));
     }
 }
 

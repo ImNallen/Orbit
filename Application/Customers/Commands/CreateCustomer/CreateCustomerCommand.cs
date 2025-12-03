@@ -13,7 +13,7 @@ public sealed record CreateCustomerCommand(
     string? PhoneNumber,
     string Street,
     string City,
-    string State,
+    string? State,
     string Country,
     string ZipCode) : IRequest<Result<CreateCustomerResult, DomainError>>;
 

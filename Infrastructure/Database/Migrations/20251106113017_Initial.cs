@@ -36,6 +36,44 @@ namespace Infrastructure.Database.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "inventory",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    product_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    location_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    quantity = table.Column<int>(type: "integer", nullable: false),
+                    reserved_quantity = table.Column<int>(type: "integer", nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_inventory", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "locations",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    street = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    city = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    state = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    country = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    zip_code = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    status = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_locations", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "password_history",
                 columns: table => new
                 {
@@ -72,7 +110,6 @@ namespace Infrastructure.Database.Migrations
                     name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     description = table.Column<string>(type: "character varying(2000)", maxLength: 2000, nullable: false),
                     sku = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    stock_quantity = table.Column<int>(type: "integer", nullable: false),
                     status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -119,6 +156,25 @@ namespace Infrastructure.Database.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "user_location_assignments",
+                columns: table => new
+                {
+                    id = table.Column<Guid>(type: "uuid", nullable: false),
+                    user_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    location_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    is_primary_location = table.Column<bool>(type: "boolean", nullable: false),
+                    status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    assigned_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    terminated_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_user_location_assignments", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "users",
                 columns: table => new
                 {
@@ -138,7 +194,8 @@ namespace Infrastructure.Database.Migrations
                     created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     last_login_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    role_id = table.Column<Guid>(type: "uuid", nullable: false)
+                    role_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    current_location_context_id = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -150,6 +207,27 @@ namespace Infrastructure.Database.Migrations
                 table: "customers",
                 column: "email",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_inventory_location_id",
+                table: "inventory",
+                column: "location_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_inventory_product_id",
+                table: "inventory",
+                column: "product_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_inventory_product_location",
+                table: "inventory",
+                columns: new[] { "product_id", "location_id" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_locations_name",
+                table: "locations",
+                column: "name");
 
             migrationBuilder.CreateIndex(
                 name: "ix_password_history_user_id",
@@ -212,6 +290,31 @@ namespace Infrastructure.Database.Migrations
                 columns: new[] { "user_id", "is_revoked", "expires_at" });
 
             migrationBuilder.CreateIndex(
+                name: "ix_user_location_assignments_location_id",
+                table: "user_location_assignments",
+                column: "location_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_user_location_assignments_status",
+                table: "user_location_assignments",
+                column: "status");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_user_location_assignments_user_id",
+                table: "user_location_assignments",
+                column: "user_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_user_location_assignments_user_location",
+                table: "user_location_assignments",
+                columns: new[] { "user_id", "location_id" });
+
+            migrationBuilder.CreateIndex(
+                name: "ix_users_current_location_context_id",
+                table: "users",
+                column: "current_location_context_id");
+
+            migrationBuilder.CreateIndex(
                 name: "ix_users_email",
                 table: "users",
                 column: "email",
@@ -235,6 +338,12 @@ namespace Infrastructure.Database.Migrations
                 name: "customers");
 
             migrationBuilder.DropTable(
+                name: "inventory");
+
+            migrationBuilder.DropTable(
+                name: "locations");
+
+            migrationBuilder.DropTable(
                 name: "password_history");
 
             migrationBuilder.DropTable(
@@ -248,6 +357,9 @@ namespace Infrastructure.Database.Migrations
 
             migrationBuilder.DropTable(
                 name: "sessions");
+
+            migrationBuilder.DropTable(
+                name: "user_location_assignments");
 
             migrationBuilder.DropTable(
                 name: "users");

@@ -60,7 +60,7 @@ public class LocationRepository : ILocationRepository
             query = query.Where(l =>
                 EF.Functions.ILike(l.Name, $"%{searchTerm}%") ||
                 EF.Functions.ILike(l.Address.City, $"%{searchTerm}%") ||
-                EF.Functions.ILike(l.Address.State, $"%{searchTerm}%"));
+                EF.Functions.ILike(l.Address.State!, $"%{searchTerm}%"));
         }
 
         // Apply type filter
@@ -83,7 +83,7 @@ public class LocationRepository : ILocationRepository
 
         if (!string.IsNullOrWhiteSpace(state))
         {
-            query = query.Where(l => EF.Functions.ILike(l.Address.State, $"%{state}%"));
+            query = query.Where(l => EF.Functions.ILike(l.Address.State!, $"%{state}%"));
         }
 
         if (!string.IsNullOrWhiteSpace(country))

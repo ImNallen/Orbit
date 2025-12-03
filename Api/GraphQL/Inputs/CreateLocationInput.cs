@@ -10,7 +10,7 @@ public sealed record CreateLocationInput(
     LocationTypeType Type,
     string Street,
     string City,
-    string State,
+    string? State,
     string Country,
     string ZipCode);
 

@@ -56,7 +56,7 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
             address.Property(a => a.State)
                 .HasColumnName("state")
                 .HasMaxLength(100)
-                .IsRequired();
+                .IsRequired(false); // Optional - not commonly used in Nordic countries
 
             address.Property(a => a.Country)
                 .HasColumnName("country")

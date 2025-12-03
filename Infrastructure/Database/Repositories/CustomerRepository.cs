@@ -87,7 +87,7 @@ public class CustomerRepository : ICustomerRepository
         // Apply state filter
         if (!string.IsNullOrWhiteSpace(state))
         {
-            query = query.Where(c => EF.Functions.ILike(c.Address.State, state));
+            query = query.Where(c => EF.Functions.ILike(c.Address.State!, state));
         }
 
         // Apply city filter

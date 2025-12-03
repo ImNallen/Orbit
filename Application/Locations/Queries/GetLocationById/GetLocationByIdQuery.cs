@@ -19,7 +19,7 @@ public sealed record LocationDto(
     LocationStatus Status,
     string Street,
     string City,
-    string State,
+    string? State,
     string Country,
     string ZipCode,
     bool IsOperational,

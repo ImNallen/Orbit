@@ -7,7 +7,7 @@ public sealed record UpdateCustomerAddressInput(
     Guid CustomerId,
     string Street,
     string City,
-    string State,
+    string? State,
     string Country,
     string ZipCode);
 

@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Database.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251104133200_AddLocationAndInventoryAggregates")]
-    partial class AddLocationAndInventoryAggregates
+    [Migration("20251106115033_MakeAddressStateOptional")]
+    partial class MakeAddressStateOptional
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -343,6 +343,63 @@ namespace Infrastructure.Database.Migrations
                     b.ToTable("sessions", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.UserLocations.UserLocationAssignment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("AssignedDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("assigned_date");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("IsPrimaryLocation")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_primary_location");
+
+                    b.Property<Guid>("LocationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("location_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime?>("TerminatedDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("terminated_date");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LocationId")
+                        .HasDatabaseName("ix_user_location_assignments_location_id");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("ix_user_location_assignments_status");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_user_location_assignments_user_id");
+
+                    b.HasIndex("UserId", "LocationId")
+                        .HasDatabaseName("ix_user_location_assignments_user_location");
+
+                    b.ToTable("user_location_assignments", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Users.PasswordHistory", b =>
                 {
                     b.Property<Guid>("Id")
@@ -377,6 +434,10 @@ namespace Infrastructure.Database.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
+
+                    b.Property<Guid?>("CurrentLocationContextId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("current_location_context_id");
 
                     b.Property<string>("EmailVerificationToken")
                         .HasMaxLength(500)
@@ -428,6 +489,9 @@ namespace Infrastructure.Database.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CurrentLocationContextId")
+                        .HasDatabaseName("ix_users_current_location_context_id");
+
                     b.HasIndex("EmailVerificationToken")
                         .HasDatabaseName("ix_users_email_verification_token");
 
@@ -457,7 +521,6 @@ namespace Infrastructure.Database.Migrations
                                 .HasColumnName("country");
 
                             b1.Property<string>("State")
-                                .IsRequired()
                                 .HasMaxLength(100)
                                 .HasColumnType("character varying(100)")
                                 .HasColumnName("state");
@@ -580,7 +643,6 @@ namespace Infrastructure.Database.Migrations
                                 .HasColumnName("country");
 
                             b1.Property<string>("State")
-                                .IsRequired()
                                 .HasMaxLength(100)
                                 .HasColumnType("character varying(100)")
                                 .HasColumnName("state");

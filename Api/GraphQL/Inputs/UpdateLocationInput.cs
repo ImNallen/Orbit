@@ -8,7 +8,7 @@ public sealed record UpdateLocationInput(
     string Name,
     string Street,
     string City,
-    string State,
+    string? State,
     string Country,
     string ZipCode);
 

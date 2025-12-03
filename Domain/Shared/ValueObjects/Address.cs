@@ -13,7 +13,7 @@ public sealed record Address
     private const int MaxCountryLength = 100;
     private const int MaxZipCodeLength = 20;
 
-    private Address(string street, string city, string state, string country, string zipCode)
+    private Address(string street, string city, string? state, string country, string zipCode)
     {
         Street = street;
         City = city;
@@ -24,7 +24,7 @@ public sealed record Address
 
     public string Street { get; }
     public string City { get; }
-    public string State { get; }
+    public string? State { get; }
     public string Country { get; }
     public string ZipCode { get; }
 
@@ -33,14 +33,14 @@ public sealed record Address
     /// </summary>
     /// <param name="street">The street address.</param>
     /// <param name="city">The city.</param>
-    /// <param name="state">The state or province.</param>
+    /// <param name="state">The state or province (optional, not commonly used in Nordic countries).</param>
     /// <param name="country">The country.</param>
     /// <param name="zipCode">The postal/zip code.</param>
     /// <returns>Result containing the Address or an error.</returns>
     public static Result<Address, DomainError> Create(
         string street,
         string city,
-        string state,
+        string? state,
         string country,
         string zipCode)
     {
@@ -68,16 +68,15 @@ public sealed record Address
             return Result<Address, DomainError>.Failure(AddressErrors.CityTooLong);
         }
 
-        // Validate state
-        if (string.IsNullOrWhiteSpace(state))
+        // Validate state (optional)
+        string? trimmedState = null;
+        if (!string.IsNullOrWhiteSpace(state))
         {
-            return Result<Address, DomainError>.Failure(AddressErrors.StateRequired);
-        }
-
-        string trimmedState = state.Trim();
-        if (trimmedState.Length > MaxStateLength)
-        {
-            return Result<Address, DomainError>.Failure(AddressErrors.StateTooLong);
+            trimmedState = state.Trim();
+            if (trimmedState.Length > MaxStateLength)
+            {
+                return Result<Address, DomainError>.Failure(AddressErrors.StateTooLong);
+            }
         }
 
         // Validate country
@@ -115,7 +114,11 @@ public sealed record Address
     /// <summary>
     /// Gets the formatted full address.
     /// </summary>
-    public string GetFullAddress() => $"{Street}, {City}, {State} {ZipCode}, {Country}";
+    public string GetFullAddress()
+    {
+        string statePart = !string.IsNullOrWhiteSpace(State) ? $"{State} " : string.Empty;
+        return $"{Street}, {City}, {statePart}{ZipCode}, {Country}";
+    }
 
     public override string ToString() => GetFullAddress();
 }
@@ -140,10 +143,6 @@ public static class AddressErrors
     public static readonly DomainError CityTooLong = new AddressError(
         "Address.CityTooLong",
         "City cannot exceed 100 characters.");
-
-    public static readonly DomainError StateRequired = new AddressError(
-        "Address.StateRequired",
-        "State or province is required.");
 
     public static readonly DomainError StateTooLong = new AddressError(
         "Address.StateTooLong",

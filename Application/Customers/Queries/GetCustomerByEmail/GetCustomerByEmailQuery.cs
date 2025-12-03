@@ -19,7 +19,7 @@ public sealed record GetCustomerByEmailResult(
     string? PhoneNumber,
     string Street,
     string City,
-    string State,
+    string? State,
     string Country,
     string ZipCode,
     string Status,

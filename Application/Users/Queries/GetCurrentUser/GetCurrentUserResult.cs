@@ -1,3 +1,5 @@
+using Domain.Locations.Enums;
+
 namespace Application.Users.Queries.GetCurrentUser;
 
 /// <summary>
@@ -13,5 +15,21 @@ public sealed record GetCurrentUserResult(
     DateTime CreatedAt,
     DateTime? LastLoginAt,
     string? Role,
-    IReadOnlyList<string> Permissions);
+    IReadOnlyList<string> Permissions,
+    Guid? CurrentLocationContextId,
+    IReadOnlyList<UserLocationDto> AssignedLocations);
+
+/// <summary>
+/// User location assignment data transfer object.
+/// </summary>
+public sealed record UserLocationDto(
+    Guid LocationId,
+    string Name,
+    LocationType Type,
+    LocationStatus Status,
+    string City,
+    string? State,
+    string Country,
+    bool IsPrimaryLocation,
+    bool IsCurrentContext);
 

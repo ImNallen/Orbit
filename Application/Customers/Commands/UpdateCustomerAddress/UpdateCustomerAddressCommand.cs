@@ -10,7 +10,7 @@ public sealed record UpdateCustomerAddressCommand(
     Guid CustomerId,
     string Street,
     string City,
-    string State,
+    string? State,
     string Country,
     string ZipCode) : IRequest<Result<UpdateCustomerAddressResult, DomainError>>;
 

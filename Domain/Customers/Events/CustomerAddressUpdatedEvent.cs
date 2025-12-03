@@ -9,7 +9,7 @@ public sealed record CustomerAddressUpdatedEvent(
     Guid CustomerId,
     string Street,
     string City,
-    string State,
+    string? State,
     string Country,
     string ZipCode) : DomainEvent;
 

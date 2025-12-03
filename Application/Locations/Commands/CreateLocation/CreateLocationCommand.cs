@@ -12,7 +12,7 @@ public sealed record CreateLocationCommand(
     LocationType Type,
     string Street,
     string City,
-    string State,
+    string? State,
     string Country,
     string ZipCode) : IRequest<Result<CreateLocationResult, DomainError>>;
 
@@ -24,5 +24,5 @@ public sealed record CreateLocationResult(
     string Name,
     LocationType Type,
     string City,
-    string State);
+    string? State);
 

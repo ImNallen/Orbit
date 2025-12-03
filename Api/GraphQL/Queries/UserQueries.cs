@@ -54,7 +54,20 @@ public sealed class UserQueries
             CreatedAt = result.Value.CreatedAt,
             LastLoginAt = result.Value.LastLoginAt,
             Role = result.Value.Role,
-            Permissions = result.Value.Permissions
+            Permissions = result.Value.Permissions,
+            CurrentLocationContextId = result.Value.CurrentLocationContextId,
+            AssignedLocations = result.Value.AssignedLocations.Select(l => new UserAssignedLocationType
+            {
+                LocationId = l.LocationId,
+                Name = l.Name,
+                Type = l.Type.ToString(),
+                Status = l.Status.ToString(),
+                City = l.City,
+                State = l.State,
+                Country = l.Country,
+                IsPrimaryLocation = l.IsPrimaryLocation,
+                IsCurrentContext = l.IsCurrentContext
+            }).ToList()
         };
     }
 

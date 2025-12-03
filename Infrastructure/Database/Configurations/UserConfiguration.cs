@@ -1,3 +1,4 @@
+using Domain.UserLocations;
 using Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -124,8 +125,15 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         // Ignore password history collection (stored in separate table)
         builder.Ignore(u => u.PasswordHistory);
 
-        // Ignore location assignments collection (stored in separate table)
-        builder.Ignore(u => u.LocationAssignments);
+        // Configure location assignments relationship using backing field
+        builder.HasMany(u => u.LocationAssignments)
+            .WithOne()
+            .HasForeignKey(ula => ula.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Configure EF Core to use the backing field for LocationAssignments
+        builder.Metadata.FindNavigation(nameof(User.LocationAssignments))!
+            .SetPropertyAccessMode(PropertyAccessMode.Field);
     }
 }
 
